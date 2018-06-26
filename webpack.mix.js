@@ -27,6 +27,7 @@ mix.scripts([
 
     'resources/assets/plantilla/js/plugins.js',
     'resources/assets/plantilla/js/main.js',
+     'resources/assets/plantilla/js/vendor/jquery-2.1.4.min.js',
     'resources/assets/plantilla/js/lib/chart-js/Chart.bundle.js',
     'resources/assets/plantilla/js/dashboard.js',
     'resources/assets/plantilla/js/widgets.js',
@@ -34,6 +35,9 @@ mix.scripts([
     'resources/assets/plantilla/js/lib/vector-map/jquery.vmap.min.js',
     'resources/assets/plantilla/js/lib/vector-map/jquery.vmap.sampledata.js',
     'resources/assets/plantilla/js/lib/vector-map/country/jquery.vmap.world.js',
+    'resources/assets/plantilla/js/sweetalert2.all.js',
 
 ], 'public/js/plantilla.js')
+
 .js(['resources/assets/js/app.js' ],'public/js/app.js');
+

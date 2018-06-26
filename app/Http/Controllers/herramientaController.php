@@ -13,8 +13,9 @@ class herramientaController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
+        if (!$request->ajax())return redirect('/');
         $herramientas = Herramientas_Cocina::all();
         return $herramientas;
 
@@ -38,10 +39,11 @@ class herramientaController extends Controller
      */
     public function store(Request $request)
     {
+        if (!$request->ajax())return redirect('/');
         $herramienta = new Herramientas_Cocina();
         $herramienta->nombre=$request->nombre;
         $herramienta->cantidad=$request->cantidad;
-        $herramienta->condicion ='1';
+
         $herramienta->save();
     }
 
@@ -74,12 +76,13 @@ class herramientaController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
+        if (!$request->ajax())return redirect('/');
         $herramienta = Herramientas_Cocina::findOrFail($request->id_herramienta);
         $herramienta->nombre=$request->nombre;
         $herramienta->cantidad=$request->cantidad;
-        $herramienta->condicion ='1';
+
         $herramienta->save();
     }
 
@@ -91,6 +94,10 @@ class herramientaController extends Controller
      */
     public function destroy($id)
     {
+        $herramienta = Herramientas_Cocina::findOrFail($id);
+
+        $herramienta->delete();
+
 
     }
     public function desactivar(Request $request)

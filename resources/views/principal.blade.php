@@ -11,32 +11,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
      <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <link rel="apple-touch-icon" href="apple-icon.png">
-    <link rel="shortcut icon" href="favicon.ico">
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.7/semantic.min.css" media="screen" title="no title" charset="utf-8">
      <link rel="stylesheet" href="css/lib/datatable/dataTables.bootstrap.min.css">
+     <link rel="apple-touch-icon" href="apple-icon.png">
+     <link rel="shortcut icon" href="favicon.ico">
      <link rel="stylesheet" href="css/plantilla.css">
-    <link rel="stylesheet" href="scss/style.css">
-
-
-
-    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800' rel='stylesheet' type='text/css'>
+     <link rel="stylesheet" href="scss/style.css">
+     <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800' rel='stylesheet' type='text/css'>
 
     <!-- <script type="text/javascript" src="https://cdn.jsdelivr.net/html5shiv/3.7.3/html5shiv.min.js"></script> -->
 
-</head>
-<body>
-<div id="app">
-<!-- Left Panel -->
+    </head>
+    <body>
+    <div id="app">
+    <!-- Left Panel -->
 
-<aside id="left-panel" class="left-panel">
-  @include('plantilla.sidebar')
-</aside><!-- /#left-panel -->
+    <aside id="left-panel" class="left-panel">
+      @include('plantilla.sidebar')
+    </aside><!-- /#left-panel -->
 
-<!-- Left Panel -->
+    <!-- Left Panel -->
 
-<!-- Right Panel -->
-
-<div id="right-panel" class="right-panel">
+    <!-- Right Panel -->
+    <div id="right-panel" class="right-panel">
 
     <!-- Header-->
     <header id="header" class="header">
@@ -124,20 +121,30 @@
 
             <div class="col-sm-5">
                 <div class="user-area dropdown float-right">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <img class="user-avatar rounded-circle" src="images/admin.jpg" alt="User Avatar">
-                    </a>
+                    @if (auth()->user()->id_rol != 0)
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <p>Bienvenido {{ auth()->user()->name }}</p>
+                        </a>
 
-                    <div class="user-menu dropdown-menu">
-                        <a class="nav-link" href="#"><i class="fa fa- user"></i>My Profile</a>
+                        <div class="user-menu dropdown-menu">
+                            <a class="nav-link" href="#"><i class="fa fa- user"></i>Configuraciones</a>
+                            <a class="nav-link" href="#"><i class="fa fa -cog"></i>Registrar usuario</a>
 
-                        <a class="nav-link" href="#"><i class="fa fa- user"></i>Notifications <span class="count">13</span></a>
-
-                        <a class="nav-link" href="#"><i class="fa fa -cog"></i>Settings</a>
-
-                        <a class="nav-link" href="#"><i class="fa fa-power -off"></i>Logout</a>
+                            <a class="nav-link" href="#"><i class="fa fa-power -off"></i>funcion 3</a>
+                        </div>
+                    @else
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <p>Bienvenido {{ auth()->user()->name }}</p>
+                        </a>
+                    @endif
+                    <div>
+                        <form method="POST" action="{{ route('logout') }}">
+                            {{ csrf_field() }}
+                            <button class="btn btn-danger ">Cerrar sesión</button>
+                        </form>
                     </div>
                 </div>
+
 
                 <div class="language-select dropdown" id="language-select">
                     <a class="dropdown-toggle" href="#" data-toggle="dropdown"  id="language" aria-haspopup="true" aria-expanded="true">
@@ -188,38 +195,26 @@
 
 @yield('contenido')
 
+
     </div> <!-- .content -->
 </div><!-- /#right-panel -->
 </div>
 <!-- Right Panel -->
 <script src="js/vendor/jquery-2.1.4.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js"></script>
-<script src="js/plugins.js"></script>
-<script src="js/main.js"></script>
-
-
-<script src="js/plantilla.js"></script>
 <script src="js/app.js"></script>
+<script src="js/plugins.js"></script>
+<script src="js/plantilla.js"></script>
+<script src="js/sweetalert2.all.js"></script>
+<!-- Optional: include a polyfill for ES6 Promises for IE11 and Android browser -->
+<script src="https://unpkg.com/promise-polyfill"></script>
 
-<script src="js/lib/data-table/datatables.min.js"></script>
-<script src="js/lib/data-table/dataTables.bootstrap.min.js"></script>
-<script src="js/lib/data-table/dataTables.buttons.min.js"></script>
-<script src="js/lib/data-table/buttons.bootstrap.min.js"></script>
-<script src="js/lib/data-table/jszip.min.js"></script>
-<script src="js/lib/data-table/pdfmake.min.js"></script>
-<script src="js/lib/data-table/vfs_fonts.js"></script>
-<script src="js/lib/data-table/buttons.html5.min.js"></script>
-<script src="js/lib/data-table/buttons.print.min.js"></script>
-<script src="js/lib/data-table/buttons.colVis.min.js"></script>
-<script src="js/lib/data-table/datatables-init.js"></script>
-<script src="https://code.jquery.com/jquery-3.0.0.js"></script>
-<script src="https://code.jquery.com/jquery-migrate-3.0.1.js"></script>
+
 
 
 <script type="text/javascript">
-    $(document).ready(function() {
-        $('#bootstrap-data-table-export').DataTable();
-    } );
+
+
 </script>
 </body>
 </html>

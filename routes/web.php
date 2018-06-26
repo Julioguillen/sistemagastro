@@ -11,11 +11,13 @@
 |
 */
 
-Route::get('/', function () {
-    return view('contenido/contenido');
-});
-Route::get('/herramienta','herramientaController@index');
+
+Route::get('/', 'Auth\LoginController@showLoginForm');
+
+Route::post('login', 'Auth\LoginController@login')->name('login');
+Route::post('logout', 'Auth\LoginController@logout')->name('logout');
+Route::get('dashboard','DashboardController@index')->name('dashboard');
+Route::resource('/herramienta', 'herramientaController');
+
 Route::post('/herramienta/registrar','herramientaController@store');
-Route::put('/herramienta/actualizar','herramientaController@update');
-Route::put('/herramienta/desactivar','herramientaController@desactivar');
-Route::put('/herramienta/activar','herramientaController@activar');
+
