@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+//use Illuminate\Support\Facades\DB;
 use App\Herramientas_Cocina;
 
 
@@ -16,8 +17,18 @@ class herramientaController extends Controller
     public function index(Request $request)
     {
         if (!$request->ajax())return redirect('/');
-        $herramientas = Herramientas_Cocina::all();
-        return $herramientas;
+        $herramientas = Herramientas_Cocina::paginate(10);
+        return [
+          'pagination'=>[
+              'total' => $herramientas->total(),
+              'current_page' => $herramientas->currentPage(),
+              'per_page' => $herramientas->perPage(),
+              'last_page' => $herramientas->LastPage(),
+              'from' => $herramientas->firstItem(),
+              'to' => $herramientas->LastItem(),
+          ],
+            'herramientas'=>$herramientas
+        ];
 
     }
 

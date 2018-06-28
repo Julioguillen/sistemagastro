@@ -6,12 +6,14 @@
                 <!-- OVERVIEW -->
                 <div class="panel panel-headline">
                     <div class="panel-heading">
-                        <h3 class="panel-title">Registro de Herramientas</h3>
+                        <h3 class="pb-2 display-4">Registro de Herramientas</h3>
                         <p class="panel-subtitle">Period: Oct 14, 2018 - Oct 21, 2018</p>
                     </div>
                     <button type="button" class="btn btn-secondary mb-1" @click="AbrirModal('herramienta','registrar')"><i class="fa fa-plus"></i>
                         Agregar
                     </button>
+
+
                     <div class="modal fade" tabindex="-1"  :class="{'mostrar' : modal}" role="dialog" aria-labelledby="mediumModalLabel" aria-hidden="true">
                         <div class="modal-dialog modal-lg" role="document">
                             <div class="modal-content">
@@ -43,7 +45,7 @@
 
 
                                 <div class="modal-footer">
-                                    
+
                                     <button type="button" class="btn btn-secondary" @click="cerrarModal()">Cancelar</button>
                                     <button type="button" class="btn btn-primary" v-if="tipoAccion==1" @click="RegistrarHerramientas()">Aceptar</button>
                                     <button type="button" class="btn btn-primary" v-if="tipoAccion==2" @click="ActualizarCategoria()">Actualizar</button>
@@ -67,6 +69,20 @@
                                     </div>
                                     <div class="card-body">
 
+                                        <div class="col-lg-6">
+                                        <div class="row form-group">
+                                            <div class="col col-md-12">
+                                                <div class="input-group">
+                                                    <div class="input-group-btn">
+                                                        <button class="btn btn-primary">
+                                                            <i class="fa fa-search"></i> Search
+                                                        </button>
+                                                    </div>
+                                                    <input type="text" id="input1-group2" name="input1-group2" placeholder="Username" class="form-control">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        </div>
                                         <table id="bootstrap-data-table" class="table table-striped table-bordered">
                                             <thead>
                                             <tr>
@@ -100,6 +116,20 @@
 
                                             </tbody>
                                         </table>
+                                        <nav>
+                                            <ul class="pagination">
+                                             <li class="page-item" v-if="pagination.current_page>1">
+                                                 <a href="#" class="page-link" @click.prevent="cambiarPagina(pagination.current_page-1)">anterior</a>
+                                             </li>
+                                                <li class="page-item" v-for="page in pageNumber" :key='page' :class="[page== isActivated? 'active' : '']">
+                                                    <a href="#" class="page-link" @click.prevent="cambiarPagina(page)" v-text="page">1</a>
+                                                </li>
+
+                                                <li class="page-item" v-if="pagination.current_page<pagination.last_page">
+                                                    <a href="#" class="page-link"  @click.prevent="cambiarPagina(pagination.current_page+1)">siguiente</a>
+                                                </li>
+                                            </ul>
+                                        </nav>
                                     </div>
 
 
@@ -135,25 +165,67 @@
                 tituloModal: '',
                 tipoAccion: 0,
                 errorHerramienta: 0,
-                errorMostrarMsjHerramienta: []
-
-
+                errorMostrarMsjHerramienta: [],
+                pagination :{
+                    "total": 0,
+                    "per_page": 0,
+                    "current_page": 0,
+                    "last_page": 0,
+                    "from": 0,
+                    "to": 0,
+                },
+                offset:3
             }
+        },
+        computed:{
+            isActivated:function () {
+                return this.pagination.current_page;
+            },
+            pageNumber:function(){
+               if (!this.pagination.to){
+                   return[];
+               }
+               var from = this.pagination.current_page - this.offset;
+               if (from < 1){
+                   from = 1;
+               }
+               var to = from + (this.offset * 2);
+               if (to >= this.pagination.last_page){
+                   to = this.pagination.last_page;
+               }
+               var pagesArray =[];
+               while (from <= to){
+                   pagesArray.push(from);
+                   from++;
+               }
+               return pagesArray;
+             }
+
+
         },
         methods: {
 
-          listarHerramientas(){
+          listarHerramientas(page){
 
               let me =this;
-              axios.get('/herramienta').then(function (response) {
-                    me.arrayHerramienta = response.data;
-                      console.log(response);
+              var url='/herramienta?page='+page;
+              axios.get(url).then(function (response) {
+                  var  respuesta=response.data;
+                    me.arrayHerramienta = respuesta.herramientas.data;
+                    me.pagination=respuesta.pagination;
+
 
                   })
                   .catch(function (error) {
                       console.log(error);
                   });
           },
+            cambiarPagina(page){
+              let me = this;
+              me.pagination.current_page=page;
+              me.listarHerramientas(page);
+
+            },
             RegistrarHerramientas(){
                 if (this.ValidarHerramientas()==0){
                     return;

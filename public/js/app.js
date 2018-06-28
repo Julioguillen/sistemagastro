@@ -55166,6 +55166,36 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
@@ -55180,21 +55210,61 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             tituloModal: '',
             tipoAccion: 0,
             errorHerramienta: 0,
-            errorMostrarMsjHerramienta: []
-
+            errorMostrarMsjHerramienta: [],
+            pagination: {
+                "total": 0,
+                "per_page": 0,
+                "current_page": 0,
+                "last_page": 0,
+                "from": 0,
+                "to": 0
+            },
+            offset: 3
         };
     },
 
+    computed: {
+        isActivated: function isActivated() {
+            return this.pagination.current_page;
+        },
+        pageNumber: function pageNumber() {
+            if (!this.pagination.to) {
+                return [];
+            }
+            var from = this.pagination.current_page - this.offset;
+            if (from < 1) {
+                from = 1;
+            }
+            var to = from + this.offset * 2;
+            if (to >= this.pagination.last_page) {
+                to = this.pagination.last_page;
+            }
+            var pagesArray = [];
+            while (from <= to) {
+                pagesArray.push(from);
+                from++;
+            }
+            return pagesArray;
+        }
+
+    },
     methods: {
-        listarHerramientas: function listarHerramientas() {
+        listarHerramientas: function listarHerramientas(page) {
 
             var me = this;
-            axios.get('/herramienta').then(function (response) {
-                me.arrayHerramienta = response.data;
-                console.log(response);
+            var url = '/herramienta?page=' + page;
+            axios.get(url).then(function (response) {
+                var respuesta = response.data;
+                me.arrayHerramienta = respuesta.herramientas.data;
+                me.pagination = respuesta.pagination;
             }).catch(function (error) {
                 console.log(error);
             });
+        },
+        cambiarPagina: function cambiarPagina(page) {
+            var me = this;
+            me.pagination.current_page = page;
+            me.listarHerramientas(page);
         },
         RegistrarHerramientas: function RegistrarHerramientas() {
             if (this.ValidarHerramientas() == 0) {
@@ -55564,6 +55634,8 @@ var render = function() {
                   _vm._m(1),
                   _vm._v(" "),
                   _c("div", { staticClass: "card-body" }, [
+                    _vm._m(2),
+                    _vm._v(" "),
                     _c(
                       "table",
                       {
@@ -55571,7 +55643,7 @@ var render = function() {
                         attrs: { id: "bootstrap-data-table" }
                       },
                       [
-                        _vm._m(2),
+                        _vm._m(3),
                         _vm._v(" "),
                         _c(
                           "tbody",
@@ -55663,7 +55735,86 @@ var render = function() {
                           })
                         )
                       ]
-                    )
+                    ),
+                    _vm._v(" "),
+                    _c("nav", [
+                      _c(
+                        "ul",
+                        { staticClass: "pagination" },
+                        [
+                          _vm.pagination.current_page > 1
+                            ? _c("li", { staticClass: "page-item" }, [
+                                _c(
+                                  "a",
+                                  {
+                                    staticClass: "page-link",
+                                    attrs: { href: "#" },
+                                    on: {
+                                      click: function($event) {
+                                        $event.preventDefault()
+                                        _vm.cambiarPagina(
+                                          _vm.pagination.current_page - 1
+                                        )
+                                      }
+                                    }
+                                  },
+                                  [_vm._v("anterior")]
+                                )
+                              ])
+                            : _vm._e(),
+                          _vm._v(" "),
+                          _vm._l(_vm.pageNumber, function(page) {
+                            return _c(
+                              "li",
+                              {
+                                key: page,
+                                staticClass: "page-item",
+                                class: [page == _vm.isActivated ? "active" : ""]
+                              },
+                              [
+                                _c(
+                                  "a",
+                                  {
+                                    staticClass: "page-link",
+                                    attrs: { href: "#" },
+                                    domProps: { textContent: _vm._s(page) },
+                                    on: {
+                                      click: function($event) {
+                                        $event.preventDefault()
+                                        _vm.cambiarPagina(page)
+                                      }
+                                    }
+                                  },
+                                  [_vm._v("1")]
+                                )
+                              ]
+                            )
+                          }),
+                          _vm._v(" "),
+                          _vm.pagination.current_page < _vm.pagination.last_page
+                            ? _c("li", { staticClass: "page-item" }, [
+                                _c(
+                                  "a",
+                                  {
+                                    staticClass: "page-link",
+                                    attrs: { href: "#" },
+                                    on: {
+                                      click: function($event) {
+                                        $event.preventDefault()
+                                        _vm.cambiarPagina(
+                                          _vm.pagination.current_page + 1
+                                        )
+                                      }
+                                    }
+                                  },
+                                  [_vm._v("siguiente")]
+                                )
+                              ])
+                            : _vm._e()
+                        ],
+                        2
+                      )
+                    ])
                   ])
                 ])
               ])
@@ -55680,7 +55831,7 @@ var staticRenderFns = [
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
     return _c("div", { staticClass: "panel-heading" }, [
-      _c("h3", { staticClass: "panel-title" }, [
+      _c("h3", { staticClass: "pb-2 display-4" }, [
         _vm._v("Registro de Herramientas")
       ]),
       _vm._v(" "),
@@ -55695,6 +55846,37 @@ var staticRenderFns = [
     var _c = _vm._self._c || _h
     return _c("div", { staticClass: "card-header" }, [
       _c("strong", { staticClass: "card-title" }, [_vm._v("Data Table")])
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "col-lg-6" }, [
+      _c("div", { staticClass: "row form-group" }, [
+        _c("div", { staticClass: "col col-md-12" }, [
+          _c("div", { staticClass: "input-group" }, [
+            _c("div", { staticClass: "input-group-btn" }, [
+              _c("button", { staticClass: "btn btn-primary" }, [
+                _c("i", { staticClass: "fa fa-search" }),
+                _vm._v(
+                  " Search\n                                                    "
+                )
+              ])
+            ]),
+            _vm._v(" "),
+            _c("input", {
+              staticClass: "form-control",
+              attrs: {
+                type: "text",
+                id: "input1-group2",
+                name: "input1-group2",
+                placeholder: "Username"
+              }
+            })
+          ])
+        ])
+      ])
     ])
   },
   function() {
