@@ -8,10 +8,11 @@
 require('./bootstrap');
 
 window.Vue = require('vue');
+
 import Vue from 'vue';
 import VeeValidate from 'vee-validate';
-Vue.use(VeeValidate);
 
+Vue.use(VeeValidate);
 /**
  * Next, we will create a fresh Vue application instance and attach it to
  * the page. Then, you may begin adding components to this application
@@ -20,6 +21,8 @@ Vue.use(VeeValidate);
 
 
 Vue.component('herramientas', require('./components/Herramientas.vue'));
+Vue.component('equipos', require('./components/Equipos.vue'));
+Vue.component('usuarios', require('./components/Usuarios.vue'));
 
 
 

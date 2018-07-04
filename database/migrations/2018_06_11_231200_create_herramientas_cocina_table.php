@@ -17,6 +17,7 @@ class CreateHerramientasCocinaTable extends Migration
             $table->increments('id_herramienta');
             $table->string('nombre');
             $table->integer('cantidad');
+            $table->string('descripcion');
             $table->boolean('condicion')->default(1);
             $table->timestamps();
         });

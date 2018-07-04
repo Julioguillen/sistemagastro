@@ -17,7 +17,15 @@ class herramientaController extends Controller
     public function index(Request $request)
     {
         if (!$request->ajax())return redirect('/');
-        $herramientas = Herramientas_Cocina::paginate(10);
+        $buscar = $request->buscar;
+        $criterio = $request->criterio;
+
+           if($buscar ==''){
+            $herramientas = Herramientas_Cocina::orderBy('id_herramienta','desc')->paginate(10);
+            }else{
+               $herramientas = Herramientas_Cocina::where($criterio,'like','%'.$buscar.'%')->orderBy('id_herramienta','desc')->paginate(10);
+           }
+
         return [
           'pagination'=>[
               'total' => $herramientas->total(),
@@ -54,6 +62,7 @@ class herramientaController extends Controller
         $herramienta = new Herramientas_Cocina();
         $herramienta->nombre=$request->nombre;
         $herramienta->cantidad=$request->cantidad;
+        $herramienta->descripcion=$request->descripcion;
 
         $herramienta->save();
     }
@@ -93,6 +102,7 @@ class herramientaController extends Controller
         $herramienta = Herramientas_Cocina::findOrFail($request->id_herramienta);
         $herramienta->nombre=$request->nombre;
         $herramienta->cantidad=$request->cantidad;
+        $herramienta->descripcion=$request->descripcion;
 
         $herramienta->save();
     }

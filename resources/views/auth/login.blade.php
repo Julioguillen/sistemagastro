@@ -1,35 +1,63 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="row">
-        <div class="col-md-4 col-md-offset-4">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h1 class="panel-title">Inicio de sesión</h1>    
-                </div>
+    <div class="limiter">
+        <div class="container-login100">
+            <div class="wrap-login100">
 
-                <div class="panel-body">
-                    <form method="POST" action="{{ route('login') }}"> 
-                        {{ csrf_field() }}
-                        <div class="form-group  {{ $errors -> has('name') ? 'has-error' : ' '}}">
-                            <label for="name">Nombre</label>
-                            <input class="form-control" 
-                            name="name" 
-                            value="{{ old('name') }}" 
-                            placeholder="Ingresa tu nombre de usuario">
-                            {!! $errors -> first('name','<span class="help-block">:message</span>') !!}
-                        </div>
+                <form class="login100-form validate-form" method="POST" action="{{ route('login') }}">
+                    {{ csrf_field() }}
+                   <center> <a class="navbar-brand" href="./"><img src="images/logo.png" height="180"  alt="Logo"></a></center>
+                    <span class="login100-form-title p-b-43">
+					 Ingresa para continuar
+					</span>
 
-                        <div class="form-group {{ $errors -> has('password') ? 'has-error' : ' ' }} ">
-                            <label for="password">Contraseña</label>
-                            <input class="form-control" type="password" name="password" placeholder="Ingresa tu contraseña">
-                            {!! $errors -> first('password','<span class="help-block">:message</span>') !!}
-                        </div>
-                        <button class="btn btn-primary btn-block">Ingresar</button>
-                    </form>
-                </div>
-                
+
+                    <div class="wrap-input100 validate-input" data-validate = "Valid email is required: ex@abc.xyz" {{ $errors -> has('name') ? 'has-error' : ' '}}">
+                    <input class="input100" type="text" name="name"
+                           value="{{ old('name') }}">
+                    <span class="focus-input100"></span>
+                    <span class="label-input100">Email</span>
+                {!! $errors -> first('name','<span class="help-block">:message</span>') !!}
             </div>
-        </div> 
+
+
+            <div class="wrap-input100 validate-input {{ $errors -> has('password') ? 'has-error' : ' ' }}" data-validate="Password is required">
+                <input class="input100" type="password"  name="password">
+                <span class="focus-input100"></span>
+                <span class="label-input100">Password</span>
+                {!! $errors -> first('password','<span class="help-block">:message</span>') !!}
+            </div>
+
+            <div class="flex-sb-m w-full p-t-3 p-b-32">
+                <div class="contact100-form-checkbox">
+                    <input class="input-checkbox100" id="ckb1" type="checkbox" name="remember-me">
+                    <label class="label-checkbox100" for="ckb1">
+                        Remember me
+                    </label>
+                </div>
+
+
+            </div>
+
+
+            <div class="container-login100-form-btn">
+                <button class="login100-form-btn">
+                    Login
+                </button>
+            </div>
+
+
+
+
+            </form>
+
+            <div class="login100-more" style="background-image: url('images/cheff.jpg');">
+            </div>
+        </div>
     </div>
+
+
+
+
 @endsection

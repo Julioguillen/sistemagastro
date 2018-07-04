@@ -2,12 +2,15 @@
 
  @section('contenido')
 
+     <template v-if="menu==0">
+     <usuarios></usuarios>
+     </template>
 
      <template v-if="menu==1">
     <herramientas></herramientas>
      </template>
 
      <template v-if="menu==2">
-         <h1></h1>
+         <equipos></equipos>
      </template>
  @endsection

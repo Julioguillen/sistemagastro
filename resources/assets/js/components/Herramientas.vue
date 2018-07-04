@@ -9,9 +9,7 @@
                         <h3 class="pb-2 display-4">Registro de Herramientas</h3>
                         <p class="panel-subtitle">Period: Oct 14, 2018 - Oct 21, 2018</p>
                     </div>
-                    <button type="button" class="btn btn-secondary mb-1" @click="AbrirModal('herramienta','registrar')"><i class="fa fa-plus"></i>
-                        Agregar
-                    </button>
+
 
 
                     <div class="modal fade" tabindex="-1"  :class="{'mostrar' : modal}" role="dialog" aria-labelledby="mediumModalLabel" aria-hidden="true">
@@ -24,13 +22,18 @@
                                     </button>
                                 </div>
                                 <div class="modal-body">
-                                    <div class="form-group">
+                                    <div class="form-group"  >
                                         <label  class=" form-control-label">Nombre</label>
-                                        <input type="text"   v-model="nombre" placeholder="Inserta Nombre de Herramienta" class="form-control">
+                                        <input type="text"   v-model="nombre"  v-validate="'required'" name="nombre"  placeholder="Inserta Nombre de Herramienta" class="form-control">
+                                        <span>{{ errors.first('nombre') }}</span>
                                     </div>
                                     <div class="form-group">
                                         <label  class=" form-control-label">Cantidad</label>
                                         <input type="number"  v-model="cantidad" placeholder="Cantidad" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label  class=" form-control-label">Descripcion</label>
+                                        <input type="text"  v-model="descripcion" placeholder="Descripcion" class="form-control">
                                     </div>
                                     <div v-show="errorHerramienta" class="form-group row  div-error">
                                         <div class="text-center">
@@ -67,18 +70,26 @@
                                     <div class="card-header">
                                         <strong class="card-title">Data Table</strong>
                                     </div>
-                                    <div class="card-body">
 
+                                    <div class="card-body">
+                                        <button type="button" class="btn btn-primary" @click="AbrirModal('herramienta','registrar')"><i class="fa fa-plus"></i>
+                                            Agregar
+                                        </button>
                                         <div class="col-lg-6">
                                         <div class="row form-group">
                                             <div class="col col-md-12">
                                                 <div class="input-group">
                                                     <div class="input-group-btn">
-                                                        <button class="btn btn-primary">
+                                                        <select  class="dropdown-toggle btn btn-primary" v-model="criterio">
+                                                            <option class="form-group" value="nombre">Nombre</option>
+                                                            <option class="form-group" value="descripcion">Descripcion</option>
+
+                                                        </select>
+                                                        <button class="btn btn-primary" @click="listarHerramientas(1,buscar,criterio)">
                                                             <i class="fa fa-search"></i> Search
                                                         </button>
                                                     </div>
-                                                    <input type="text" id="input1-group2" name="input1-group2" placeholder="Username" class="form-control">
+                                                    <input type="text"  v-model="buscar" @keyup.enter="listarHerramientas(1,buscar,criterio)" placeholder="Nombre a buscar" class="form-control">
                                                 </div>
                                             </div>
                                         </div>
@@ -97,9 +108,9 @@
                                             <tbody>
                                             <tr v-for="(herramienta, index) in arrayHerramienta" :key="herramienta.id_herramienta">
                                                 <td v-text="herramienta.id_herramienta"></td>
-                                                <td v-text="herramienta.nombre"></td>
+                                                <td class="btn btn-link" v-text="herramienta.nombre"></td>
                                                 <td v-text="herramienta.cantidad"></td>
-                                                <td></td>
+                                                <td v-text="herramienta.descripcion"></td>
                                                 <td>
                                                     <button  class="btn btn-warning" @click="AbrirModal('herramienta','actualizar',herramienta)">
                                                         <i class="fa  fa-pencil"></i>
@@ -111,7 +122,10 @@
                                                     </button>
                                                 </template>
                                                 </td>
-                                                <td>Altas y bajas</td>
+                                                <td>
+                                                    <label class="switch switch-3d switch-success mr-3"><input type="checkbox" class="switch-input" checked="true">
+                                                    <span class="switch-label"></span> <span class="switch-handle"></span></label>
+                                                </td>
                                             </tr>
 
                                             </tbody>
@@ -119,14 +133,14 @@
                                         <nav>
                                             <ul class="pagination">
                                              <li class="page-item" v-if="pagination.current_page>1">
-                                                 <a href="#" class="page-link" @click.prevent="cambiarPagina(pagination.current_page-1)">anterior</a>
+                                                 <a href="#" class="page-link" @click.prevent="cambiarPagina(pagination.current_page-1, buscar,criterio)">anterior</a>
                                              </li>
                                                 <li class="page-item" v-for="page in pageNumber" :key='page' :class="[page== isActivated? 'active' : '']">
-                                                    <a href="#" class="page-link" @click.prevent="cambiarPagina(page)" v-text="page">1</a>
+                                                    <a href="#" class="page-link" @click.prevent="cambiarPagina(page,buscar,criterio)" v-text="page">1</a>
                                                 </li>
 
                                                 <li class="page-item" v-if="pagination.current_page<pagination.last_page">
-                                                    <a href="#" class="page-link"  @click.prevent="cambiarPagina(pagination.current_page+1)">siguiente</a>
+                                                    <a href="#" class="page-link"  @click.prevent="cambiarPagina(pagination.current_page+1,buscar,criterio)">siguiente</a>
                                                 </li>
                                             </ul>
                                         </nav>
@@ -160,6 +174,7 @@
                 id: 0,
                 nombre: '',
                 cantidad: '',
+                descripcion: '',
                 arrayHerramienta: [],
                 modal: 0,
                 tituloModal: '',
@@ -174,7 +189,9 @@
                     "from": 0,
                     "to": 0,
                 },
-                offset:3
+                offset:10,
+                criterio:'nombre',
+                buscar:''
             }
         },
         computed:{
@@ -205,10 +222,10 @@
         },
         methods: {
 
-          listarHerramientas(page){
+          listarHerramientas(page,buscar,criterio){
 
               let me =this;
-              var url='/herramienta?page='+page;
+              var url='/herramienta?page='+ page + '&buscar='+buscar + '&criterio'+criterio;
               axios.get(url).then(function (response) {
                   var  respuesta=response.data;
                     me.arrayHerramienta = respuesta.herramientas.data;
@@ -220,10 +237,10 @@
                       console.log(error);
                   });
           },
-            cambiarPagina(page){
+            cambiarPagina(page,buscar,criterio){
               let me = this;
               me.pagination.current_page=page;
-              me.listarHerramientas(page);
+              me.listarHerramientas(page,buscar,criterio);
 
             },
             RegistrarHerramientas(){
@@ -234,10 +251,12 @@
                 let me =this;
                 axios.post('/herramienta/registrar',{
                     'nombre':this.nombre,
-                    'cantidad':this.cantidad
+                    'cantidad':this.cantidad,
+                    'descripcion':this.descripcion
+
                 }).then(function (response) {
                     me.cerrarModal();
-                    me.listarHerramientas();
+                    me.listarHerramientas(1,'','nombre' );
                     console.log(response);
                     swal("Exito", "Se inserto correctamente!", "success");
                 })
@@ -252,10 +271,11 @@
                 axios.put('/herramienta/actualizar',{
                     'nombre':this.nombre,
                     'cantidad':this.cantidad,
+                    'descripcion':this.descripcion,
                     'id_herramienta': this.id
                 }).then(function (response) {
                     me.cerrarModal();
-                    me.listarHerramientas();
+                    me.listarHerramientas(1,'','nombre'  );
                     console.log(response);
                     swal("Exito", "Se Actualizo correctamente!", "success");
                 })
@@ -281,7 +301,7 @@
                            id:id_herramienta
                             console.log(response);
                         }).then(function (response) {
-                            me.listarHerramientas();
+                            me.listarHerramientas(1,'','nombre' );
                             swal(
 
                                 'Eliminado!',
@@ -352,6 +372,7 @@
               this.tituloModal='';
               this.nombre='';
               this.cantidad='';
+                this.descripcion='';
 
             },
             AbrirModal(modelo,accion,data=[]){
@@ -365,6 +386,7 @@
                                     this.tituloModal='Registrar Herramienta';
                                     this.nombre='';
                                     this.cantidad='';
+                                    this.descripcion='';
                                     this.tipoAccion =1;
                                     break;
                                 }
@@ -375,6 +397,7 @@
                                     this.tipoAccion =2;
                                     this.nombre=data['nombre'];
                                     this.cantidad=data['cantidad'];
+                                    this.descripcion=data['descripcion'];
                                     this.id=data['id_herramienta'];
                                     break;
                                 }
@@ -384,7 +407,7 @@
             }
         },
         mounted() {
-          this.listarHerramientas();
+          this.listarHerramientas(1,this.buscar,this.criterio);
 
         }
     }
