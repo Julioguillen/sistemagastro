@@ -70,7 +70,7 @@
 "use strict";
 
 
-var bind = __webpack_require__(8);
+var bind = __webpack_require__(6);
 var isBuffer = __webpack_require__(23);
 
 /*global toString:true*/
@@ -424,10 +424,10 @@ function getDefaultAdapter() {
   var adapter;
   if (typeof XMLHttpRequest !== 'undefined') {
     // For browsers use XHR adapter
-    adapter = __webpack_require__(10);
+    adapter = __webpack_require__(8);
   } else if (typeof process !== 'undefined') {
     // For node use HTTP adapter
-    adapter = __webpack_require__(10);
+    adapter = __webpack_require__(8);
   }
   return adapter;
 }
@@ -502,320 +502,10 @@ utils.forEach(['post', 'put', 'patch'], function forEachMethodWithData(method) {
 
 module.exports = defaults;
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(9)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
 
 /***/ }),
 /* 3 */
-/***/ (function(module, exports) {
-
-/*
-	MIT License http://www.opensource.org/licenses/mit-license.php
-	Author Tobias Koppers @sokra
-*/
-// css base code, injected by the css-loader
-module.exports = function(useSourceMap) {
-	var list = [];
-
-	// return the list of modules as css string
-	list.toString = function toString() {
-		return this.map(function (item) {
-			var content = cssWithMappingToString(item, useSourceMap);
-			if(item[2]) {
-				return "@media " + item[2] + "{" + content + "}";
-			} else {
-				return content;
-			}
-		}).join("");
-	};
-
-	// import a list of modules into the list
-	list.i = function(modules, mediaQuery) {
-		if(typeof modules === "string")
-			modules = [[null, modules, ""]];
-		var alreadyImportedModules = {};
-		for(var i = 0; i < this.length; i++) {
-			var id = this[i][0];
-			if(typeof id === "number")
-				alreadyImportedModules[id] = true;
-		}
-		for(i = 0; i < modules.length; i++) {
-			var item = modules[i];
-			// skip already imported module
-			// this implementation is not 100% perfect for weird media query combinations
-			//  when a module is imported multiple times with different media queries.
-			//  I hope this will never occur (Hey this way we have smaller bundles)
-			if(typeof item[0] !== "number" || !alreadyImportedModules[item[0]]) {
-				if(mediaQuery && !item[2]) {
-					item[2] = mediaQuery;
-				} else if(mediaQuery) {
-					item[2] = "(" + item[2] + ") and (" + mediaQuery + ")";
-				}
-				list.push(item);
-			}
-		}
-	};
-	return list;
-};
-
-function cssWithMappingToString(item, useSourceMap) {
-	var content = item[1] || '';
-	var cssMapping = item[3];
-	if (!cssMapping) {
-		return content;
-	}
-
-	if (useSourceMap && typeof btoa === 'function') {
-		var sourceMapping = toComment(cssMapping);
-		var sourceURLs = cssMapping.sources.map(function (source) {
-			return '/*# sourceURL=' + cssMapping.sourceRoot + source + ' */'
-		});
-
-		return [content].concat(sourceURLs).concat([sourceMapping]).join('\n');
-	}
-
-	return [content].join('\n');
-}
-
-// Adapted from convert-source-map (MIT)
-function toComment(sourceMap) {
-	// eslint-disable-next-line no-undef
-	var base64 = btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap))));
-	var data = 'sourceMappingURL=data:application/json;charset=utf-8;base64,' + base64;
-
-	return '/*# ' + data + ' */';
-}
-
-
-/***/ }),
-/* 4 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/*
-  MIT License http://www.opensource.org/licenses/mit-license.php
-  Author Tobias Koppers @sokra
-  Modified by Evan You @yyx990803
-*/
-
-var hasDocument = typeof document !== 'undefined'
-
-if (typeof DEBUG !== 'undefined' && DEBUG) {
-  if (!hasDocument) {
-    throw new Error(
-    'vue-style-loader cannot be used in a non-browser environment. ' +
-    "Use { target: 'node' } in your Webpack config to indicate a server-rendering environment."
-  ) }
-}
-
-var listToStyles = __webpack_require__(46)
-
-/*
-type StyleObject = {
-  id: number;
-  parts: Array<StyleObjectPart>
-}
-
-type StyleObjectPart = {
-  css: string;
-  media: string;
-  sourceMap: ?string
-}
-*/
-
-var stylesInDom = {/*
-  [id: number]: {
-    id: number,
-    refs: number,
-    parts: Array<(obj?: StyleObjectPart) => void>
-  }
-*/}
-
-var head = hasDocument && (document.head || document.getElementsByTagName('head')[0])
-var singletonElement = null
-var singletonCounter = 0
-var isProduction = false
-var noop = function () {}
-var options = null
-var ssrIdKey = 'data-vue-ssr-id'
-
-// Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
-// tags it will allow on a page
-var isOldIE = typeof navigator !== 'undefined' && /msie [6-9]\b/.test(navigator.userAgent.toLowerCase())
-
-module.exports = function (parentId, list, _isProduction, _options) {
-  isProduction = _isProduction
-
-  options = _options || {}
-
-  var styles = listToStyles(parentId, list)
-  addStylesToDom(styles)
-
-  return function update (newList) {
-    var mayRemove = []
-    for (var i = 0; i < styles.length; i++) {
-      var item = styles[i]
-      var domStyle = stylesInDom[item.id]
-      domStyle.refs--
-      mayRemove.push(domStyle)
-    }
-    if (newList) {
-      styles = listToStyles(parentId, newList)
-      addStylesToDom(styles)
-    } else {
-      styles = []
-    }
-    for (var i = 0; i < mayRemove.length; i++) {
-      var domStyle = mayRemove[i]
-      if (domStyle.refs === 0) {
-        for (var j = 0; j < domStyle.parts.length; j++) {
-          domStyle.parts[j]()
-        }
-        delete stylesInDom[domStyle.id]
-      }
-    }
-  }
-}
-
-function addStylesToDom (styles /* Array<StyleObject> */) {
-  for (var i = 0; i < styles.length; i++) {
-    var item = styles[i]
-    var domStyle = stylesInDom[item.id]
-    if (domStyle) {
-      domStyle.refs++
-      for (var j = 0; j < domStyle.parts.length; j++) {
-        domStyle.parts[j](item.parts[j])
-      }
-      for (; j < item.parts.length; j++) {
-        domStyle.parts.push(addStyle(item.parts[j]))
-      }
-      if (domStyle.parts.length > item.parts.length) {
-        domStyle.parts.length = item.parts.length
-      }
-    } else {
-      var parts = []
-      for (var j = 0; j < item.parts.length; j++) {
-        parts.push(addStyle(item.parts[j]))
-      }
-      stylesInDom[item.id] = { id: item.id, refs: 1, parts: parts }
-    }
-  }
-}
-
-function createStyleElement () {
-  var styleElement = document.createElement('style')
-  styleElement.type = 'text/css'
-  head.appendChild(styleElement)
-  return styleElement
-}
-
-function addStyle (obj /* StyleObjectPart */) {
-  var update, remove
-  var styleElement = document.querySelector('style[' + ssrIdKey + '~="' + obj.id + '"]')
-
-  if (styleElement) {
-    if (isProduction) {
-      // has SSR styles and in production mode.
-      // simply do nothing.
-      return noop
-    } else {
-      // has SSR styles but in dev mode.
-      // for some reason Chrome can't handle source map in server-rendered
-      // style tags - source maps in <style> only works if the style tag is
-      // created and inserted dynamically. So we remove the server rendered
-      // styles and inject new ones.
-      styleElement.parentNode.removeChild(styleElement)
-    }
-  }
-
-  if (isOldIE) {
-    // use singleton mode for IE9.
-    var styleIndex = singletonCounter++
-    styleElement = singletonElement || (singletonElement = createStyleElement())
-    update = applyToSingletonTag.bind(null, styleElement, styleIndex, false)
-    remove = applyToSingletonTag.bind(null, styleElement, styleIndex, true)
-  } else {
-    // use multi-style-tag mode in all other cases
-    styleElement = createStyleElement()
-    update = applyToTag.bind(null, styleElement)
-    remove = function () {
-      styleElement.parentNode.removeChild(styleElement)
-    }
-  }
-
-  update(obj)
-
-  return function updateStyle (newObj /* StyleObjectPart */) {
-    if (newObj) {
-      if (newObj.css === obj.css &&
-          newObj.media === obj.media &&
-          newObj.sourceMap === obj.sourceMap) {
-        return
-      }
-      update(obj = newObj)
-    } else {
-      remove()
-    }
-  }
-}
-
-var replaceText = (function () {
-  var textStore = []
-
-  return function (index, replacement) {
-    textStore[index] = replacement
-    return textStore.filter(Boolean).join('\n')
-  }
-})()
-
-function applyToSingletonTag (styleElement, index, remove, obj) {
-  var css = remove ? '' : obj.css
-
-  if (styleElement.styleSheet) {
-    styleElement.styleSheet.cssText = replaceText(index, css)
-  } else {
-    var cssNode = document.createTextNode(css)
-    var childNodes = styleElement.childNodes
-    if (childNodes[index]) styleElement.removeChild(childNodes[index])
-    if (childNodes.length) {
-      styleElement.insertBefore(cssNode, childNodes[index])
-    } else {
-      styleElement.appendChild(cssNode)
-    }
-  }
-}
-
-function applyToTag (styleElement, obj) {
-  var css = obj.css
-  var media = obj.media
-  var sourceMap = obj.sourceMap
-
-  if (media) {
-    styleElement.setAttribute('media', media)
-  }
-  if (options.ssrId) {
-    styleElement.setAttribute(ssrIdKey, obj.id)
-  }
-
-  if (sourceMap) {
-    // https://developer.chrome.com/devtools/docs/javascript-debugging
-    // this makes source maps inside style tags work properly in Chrome
-    css += '\n/*# sourceURL=' + sourceMap.sources[0] + ' */'
-    // http://stackoverflow.com/a/26603875
-    css += '\n/*# sourceMappingURL=data:application/json;base64,' + btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))) + ' */'
-  }
-
-  if (styleElement.styleSheet) {
-    styleElement.styleSheet.cssText = css
-  } else {
-    while (styleElement.firstChild) {
-      styleElement.removeChild(styleElement.firstChild)
-    }
-    styleElement.appendChild(document.createTextNode(css))
-  }
-}
-
-
-/***/ }),
-/* 5 */
 /***/ (function(module, exports) {
 
 /* globals __VUE_SSR_CONTEXT__ */
@@ -924,7 +614,7 @@ module.exports = function normalizeComponent (
 
 
 /***/ }),
-/* 6 */
+/* 4 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3453,7 +3143,7 @@ Popper.Defaults = Defaults;
 /* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(1)))
 
 /***/ }),
-/* 7 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -13824,7 +13514,7 @@ return jQuery;
 
 
 /***/ }),
-/* 8 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13842,7 +13532,7 @@ module.exports = function bind(fn, thisArg) {
 
 
 /***/ }),
-/* 9 */
+/* 7 */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -14032,7 +13722,7 @@ process.umask = function() { return 0; };
 
 
 /***/ }),
-/* 10 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14043,7 +13733,7 @@ var settle = __webpack_require__(26);
 var buildURL = __webpack_require__(28);
 var parseHeaders = __webpack_require__(29);
 var isURLSameOrigin = __webpack_require__(30);
-var createError = __webpack_require__(11);
+var createError = __webpack_require__(9);
 var btoa = (typeof window !== 'undefined' && window.btoa && window.btoa.bind(window)) || __webpack_require__(31);
 
 module.exports = function xhrAdapter(config) {
@@ -14219,7 +13909,7 @@ module.exports = function xhrAdapter(config) {
 
 
 /***/ }),
-/* 11 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14244,7 +13934,7 @@ module.exports = function createError(message, config, code, request, response) 
 
 
 /***/ }),
-/* 12 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14256,7 +13946,7 @@ module.exports = function isCancel(value) {
 
 
 /***/ }),
-/* 13 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14282,7 +13972,7 @@ module.exports = Cancel;
 
 
 /***/ }),
-/* 14 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -25248,6 +24938,316 @@ module.exports = Vue;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1), __webpack_require__(40).setImmediate))
 
 /***/ }),
+/* 13 */
+/***/ (function(module, exports) {
+
+/*
+	MIT License http://www.opensource.org/licenses/mit-license.php
+	Author Tobias Koppers @sokra
+*/
+// css base code, injected by the css-loader
+module.exports = function(useSourceMap) {
+	var list = [];
+
+	// return the list of modules as css string
+	list.toString = function toString() {
+		return this.map(function (item) {
+			var content = cssWithMappingToString(item, useSourceMap);
+			if(item[2]) {
+				return "@media " + item[2] + "{" + content + "}";
+			} else {
+				return content;
+			}
+		}).join("");
+	};
+
+	// import a list of modules into the list
+	list.i = function(modules, mediaQuery) {
+		if(typeof modules === "string")
+			modules = [[null, modules, ""]];
+		var alreadyImportedModules = {};
+		for(var i = 0; i < this.length; i++) {
+			var id = this[i][0];
+			if(typeof id === "number")
+				alreadyImportedModules[id] = true;
+		}
+		for(i = 0; i < modules.length; i++) {
+			var item = modules[i];
+			// skip already imported module
+			// this implementation is not 100% perfect for weird media query combinations
+			//  when a module is imported multiple times with different media queries.
+			//  I hope this will never occur (Hey this way we have smaller bundles)
+			if(typeof item[0] !== "number" || !alreadyImportedModules[item[0]]) {
+				if(mediaQuery && !item[2]) {
+					item[2] = mediaQuery;
+				} else if(mediaQuery) {
+					item[2] = "(" + item[2] + ") and (" + mediaQuery + ")";
+				}
+				list.push(item);
+			}
+		}
+	};
+	return list;
+};
+
+function cssWithMappingToString(item, useSourceMap) {
+	var content = item[1] || '';
+	var cssMapping = item[3];
+	if (!cssMapping) {
+		return content;
+	}
+
+	if (useSourceMap && typeof btoa === 'function') {
+		var sourceMapping = toComment(cssMapping);
+		var sourceURLs = cssMapping.sources.map(function (source) {
+			return '/*# sourceURL=' + cssMapping.sourceRoot + source + ' */'
+		});
+
+		return [content].concat(sourceURLs).concat([sourceMapping]).join('\n');
+	}
+
+	return [content].join('\n');
+}
+
+// Adapted from convert-source-map (MIT)
+function toComment(sourceMap) {
+	// eslint-disable-next-line no-undef
+	var base64 = btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap))));
+	var data = 'sourceMappingURL=data:application/json;charset=utf-8;base64,' + base64;
+
+	return '/*# ' + data + ' */';
+}
+
+
+/***/ }),
+/* 14 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/*
+  MIT License http://www.opensource.org/licenses/mit-license.php
+  Author Tobias Koppers @sokra
+  Modified by Evan You @yyx990803
+*/
+
+var hasDocument = typeof document !== 'undefined'
+
+if (typeof DEBUG !== 'undefined' && DEBUG) {
+  if (!hasDocument) {
+    throw new Error(
+    'vue-style-loader cannot be used in a non-browser environment. ' +
+    "Use { target: 'node' } in your Webpack config to indicate a server-rendering environment."
+  ) }
+}
+
+var listToStyles = __webpack_require__(46)
+
+/*
+type StyleObject = {
+  id: number;
+  parts: Array<StyleObjectPart>
+}
+
+type StyleObjectPart = {
+  css: string;
+  media: string;
+  sourceMap: ?string
+}
+*/
+
+var stylesInDom = {/*
+  [id: number]: {
+    id: number,
+    refs: number,
+    parts: Array<(obj?: StyleObjectPart) => void>
+  }
+*/}
+
+var head = hasDocument && (document.head || document.getElementsByTagName('head')[0])
+var singletonElement = null
+var singletonCounter = 0
+var isProduction = false
+var noop = function () {}
+var options = null
+var ssrIdKey = 'data-vue-ssr-id'
+
+// Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
+// tags it will allow on a page
+var isOldIE = typeof navigator !== 'undefined' && /msie [6-9]\b/.test(navigator.userAgent.toLowerCase())
+
+module.exports = function (parentId, list, _isProduction, _options) {
+  isProduction = _isProduction
+
+  options = _options || {}
+
+  var styles = listToStyles(parentId, list)
+  addStylesToDom(styles)
+
+  return function update (newList) {
+    var mayRemove = []
+    for (var i = 0; i < styles.length; i++) {
+      var item = styles[i]
+      var domStyle = stylesInDom[item.id]
+      domStyle.refs--
+      mayRemove.push(domStyle)
+    }
+    if (newList) {
+      styles = listToStyles(parentId, newList)
+      addStylesToDom(styles)
+    } else {
+      styles = []
+    }
+    for (var i = 0; i < mayRemove.length; i++) {
+      var domStyle = mayRemove[i]
+      if (domStyle.refs === 0) {
+        for (var j = 0; j < domStyle.parts.length; j++) {
+          domStyle.parts[j]()
+        }
+        delete stylesInDom[domStyle.id]
+      }
+    }
+  }
+}
+
+function addStylesToDom (styles /* Array<StyleObject> */) {
+  for (var i = 0; i < styles.length; i++) {
+    var item = styles[i]
+    var domStyle = stylesInDom[item.id]
+    if (domStyle) {
+      domStyle.refs++
+      for (var j = 0; j < domStyle.parts.length; j++) {
+        domStyle.parts[j](item.parts[j])
+      }
+      for (; j < item.parts.length; j++) {
+        domStyle.parts.push(addStyle(item.parts[j]))
+      }
+      if (domStyle.parts.length > item.parts.length) {
+        domStyle.parts.length = item.parts.length
+      }
+    } else {
+      var parts = []
+      for (var j = 0; j < item.parts.length; j++) {
+        parts.push(addStyle(item.parts[j]))
+      }
+      stylesInDom[item.id] = { id: item.id, refs: 1, parts: parts }
+    }
+  }
+}
+
+function createStyleElement () {
+  var styleElement = document.createElement('style')
+  styleElement.type = 'text/css'
+  head.appendChild(styleElement)
+  return styleElement
+}
+
+function addStyle (obj /* StyleObjectPart */) {
+  var update, remove
+  var styleElement = document.querySelector('style[' + ssrIdKey + '~="' + obj.id + '"]')
+
+  if (styleElement) {
+    if (isProduction) {
+      // has SSR styles and in production mode.
+      // simply do nothing.
+      return noop
+    } else {
+      // has SSR styles but in dev mode.
+      // for some reason Chrome can't handle source map in server-rendered
+      // style tags - source maps in <style> only works if the style tag is
+      // created and inserted dynamically. So we remove the server rendered
+      // styles and inject new ones.
+      styleElement.parentNode.removeChild(styleElement)
+    }
+  }
+
+  if (isOldIE) {
+    // use singleton mode for IE9.
+    var styleIndex = singletonCounter++
+    styleElement = singletonElement || (singletonElement = createStyleElement())
+    update = applyToSingletonTag.bind(null, styleElement, styleIndex, false)
+    remove = applyToSingletonTag.bind(null, styleElement, styleIndex, true)
+  } else {
+    // use multi-style-tag mode in all other cases
+    styleElement = createStyleElement()
+    update = applyToTag.bind(null, styleElement)
+    remove = function () {
+      styleElement.parentNode.removeChild(styleElement)
+    }
+  }
+
+  update(obj)
+
+  return function updateStyle (newObj /* StyleObjectPart */) {
+    if (newObj) {
+      if (newObj.css === obj.css &&
+          newObj.media === obj.media &&
+          newObj.sourceMap === obj.sourceMap) {
+        return
+      }
+      update(obj = newObj)
+    } else {
+      remove()
+    }
+  }
+}
+
+var replaceText = (function () {
+  var textStore = []
+
+  return function (index, replacement) {
+    textStore[index] = replacement
+    return textStore.filter(Boolean).join('\n')
+  }
+})()
+
+function applyToSingletonTag (styleElement, index, remove, obj) {
+  var css = remove ? '' : obj.css
+
+  if (styleElement.styleSheet) {
+    styleElement.styleSheet.cssText = replaceText(index, css)
+  } else {
+    var cssNode = document.createTextNode(css)
+    var childNodes = styleElement.childNodes
+    if (childNodes[index]) styleElement.removeChild(childNodes[index])
+    if (childNodes.length) {
+      styleElement.insertBefore(cssNode, childNodes[index])
+    } else {
+      styleElement.appendChild(cssNode)
+    }
+  }
+}
+
+function applyToTag (styleElement, obj) {
+  var css = obj.css
+  var media = obj.media
+  var sourceMap = obj.sourceMap
+
+  if (media) {
+    styleElement.setAttribute('media', media)
+  }
+  if (options.ssrId) {
+    styleElement.setAttribute(ssrIdKey, obj.id)
+  }
+
+  if (sourceMap) {
+    // https://developer.chrome.com/devtools/docs/javascript-debugging
+    // this makes source maps inside style tags work properly in Chrome
+    css += '\n/*# sourceURL=' + sourceMap.sources[0] + ' */'
+    // http://stackoverflow.com/a/26603875
+    css += '\n/*# sourceMappingURL=data:application/json;base64,' + btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))) + ' */'
+  }
+
+  if (styleElement.styleSheet) {
+    styleElement.styleSheet.cssText = css
+  } else {
+    while (styleElement.firstChild) {
+      styleElement.removeChild(styleElement.firstChild)
+    }
+    styleElement.appendChild(document.createTextNode(css))
+  }
+}
+
+
+/***/ }),
 /* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -25260,7 +25260,7 @@ module.exports = __webpack_require__(16);
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(14);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(12);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_vue__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_vee_validate__ = __webpack_require__(42);
 
@@ -25272,12 +25272,12 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 __webpack_require__(17);
 
-window.Vue = __webpack_require__(14);
-
+window.Vue = __webpack_require__(12);
 
 
 
 __WEBPACK_IMPORTED_MODULE_0_vue___default.a.use(__WEBPACK_IMPORTED_MODULE_1_vee_validate__["a" /* default */]);
+
 /**
  * Next, we will create a fresh Vue application instance and attach it to
  * the page. Then, you may begin adding components to this application
@@ -25286,7 +25286,7 @@ __WEBPACK_IMPORTED_MODULE_0_vue___default.a.use(__WEBPACK_IMPORTED_MODULE_1_vee_
 
 __WEBPACK_IMPORTED_MODULE_0_vue___default.a.component('herramientas', __webpack_require__(43));
 __WEBPACK_IMPORTED_MODULE_0_vue___default.a.component('equipos', __webpack_require__(49));
-__WEBPACK_IMPORTED_MODULE_0_vue___default.a.component('usuarios', __webpack_require__(54));
+__WEBPACK_IMPORTED_MODULE_0_vue___default.a.component('usuarios', __webpack_require__(50));
 
 var app = new __WEBPACK_IMPORTED_MODULE_0_vue___default.a({
 
@@ -25304,7 +25304,7 @@ var app = new __WEBPACK_IMPORTED_MODULE_0_vue___default.a({
 
 
 window._ = __webpack_require__(18);
-window.Popper = __webpack_require__(6).default;
+window.Popper = __webpack_require__(4).default;
 
 /**
  * We'll load jQuery and the Bootstrap jQuery plugin which provides support
@@ -25313,7 +25313,7 @@ window.Popper = __webpack_require__(6).default;
  */
 
 try {
-  window.$ = window.jQuery = __webpack_require__(7);
+  window.$ = window.jQuery = __webpack_require__(5);
 
   __webpack_require__(20);
 } catch (e) {}
@@ -42510,7 +42510,7 @@ module.exports = function(module) {
   * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
   */
 (function (global, factory) {
-   true ? factory(exports, __webpack_require__(7), __webpack_require__(6)) :
+   true ? factory(exports, __webpack_require__(5), __webpack_require__(4)) :
   typeof define === 'function' && define.amd ? define(['exports', 'jquery', 'popper.js'], factory) :
   (factory((global.bootstrap = {}),global.jQuery,global.Popper));
 }(this, (function (exports,$,Popper) { 'use strict';
@@ -46447,7 +46447,7 @@ module.exports = __webpack_require__(22);
 
 
 var utils = __webpack_require__(0);
-var bind = __webpack_require__(8);
+var bind = __webpack_require__(6);
 var Axios = __webpack_require__(24);
 var defaults = __webpack_require__(2);
 
@@ -46482,9 +46482,9 @@ axios.create = function create(instanceConfig) {
 };
 
 // Expose Cancel & CancelToken
-axios.Cancel = __webpack_require__(13);
+axios.Cancel = __webpack_require__(11);
 axios.CancelToken = __webpack_require__(38);
-axios.isCancel = __webpack_require__(12);
+axios.isCancel = __webpack_require__(10);
 
 // Expose all/spread
 axios.all = function all(promises) {
@@ -46637,7 +46637,7 @@ module.exports = function normalizeHeaderName(headers, normalizedName) {
 "use strict";
 
 
-var createError = __webpack_require__(11);
+var createError = __webpack_require__(9);
 
 /**
  * Resolve or reject a Promise based on response status.
@@ -47070,7 +47070,7 @@ module.exports = InterceptorManager;
 
 var utils = __webpack_require__(0);
 var transformData = __webpack_require__(35);
-var isCancel = __webpack_require__(12);
+var isCancel = __webpack_require__(10);
 var defaults = __webpack_require__(2);
 var isAbsoluteURL = __webpack_require__(36);
 var combineURLs = __webpack_require__(37);
@@ -47230,7 +47230,7 @@ module.exports = function combineURLs(baseURL, relativeURL) {
 "use strict";
 
 
-var Cancel = __webpack_require__(13);
+var Cancel = __webpack_require__(11);
 
 /**
  * A `CancelToken` is an object that can be used to request cancellation of an operation.
@@ -47582,7 +47582,7 @@ exports.clearImmediate = (typeof self !== "undefined" && self.clearImmediate) ||
     attachTo.clearImmediate = clearImmediate;
 }(typeof self === "undefined" ? typeof global === "undefined" ? this : global : self));
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1), __webpack_require__(9)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1), __webpack_require__(7)))
 
 /***/ }),
 /* 42 */
@@ -47600,7 +47600,7 @@ exports.clearImmediate = (typeof self !== "undefined" && self.clearImmediate) ||
 /* unused harmony export ErrorComponent */
 /* unused harmony export version */
 /**
-  * vee-validate v2.1.0-beta.1
+  * vee-validate v2.1.0-beta.7
   * (c) 2018 Abdelrahman Awad
   * @license MIT
   */
@@ -47628,15 +47628,15 @@ var addEventListener = function (el, eventName, cb) {
 };
 
 var isTextInput = function (el) {
-  return ['text', 'password', 'search', 'email', 'tel', 'url', 'textarea'].indexOf(el.type) !== -1;
+  return includes(['text', 'password', 'search', 'email', 'tel', 'url', 'textarea'], el.type);
 };
 
 var isCheckboxOrRadioInput = function (el) {
-  return ['radio', 'checkbox'].indexOf(el.type) !== -1;
+  return includes(['radio', 'checkbox'], el.type);
 };
 
 var isDateInput = function (el) {
-  return ['date', 'week', 'month', 'datetime-local', 'time'].indexOf(el.type) !== -1;
+  return includes(['date', 'week', 'month', 'datetime-local', 'time'], el.type);
 };
 
 /**
@@ -47645,10 +47645,15 @@ var isDateInput = function (el) {
 var getDataAttribute = function (el, name) { return el.getAttribute(("data-vv-" + name)); };
 
 /**
- * Checks if the value is either null or undefined.
+ * Checks if the values are either null or undefined.
  */
-var isNullOrUndefined = function (value) {
-  return value === null || value === undefined;
+var isNullOrUndefined = function () {
+  var values = [], len = arguments.length;
+  while ( len-- ) values[ len ] = arguments[ len ];
+
+  return values.every(function (value) {
+    return value === null || value === undefined;
+  });
 };
 
 /**
@@ -47775,7 +47780,7 @@ var parseRule = function (rule) {
   var params = [];
   var name = rule.split(':')[0];
 
-  if (~rule.indexOf(':')) {
+  if (includes(rule, ':')) {
     params = rule.split(':').slice(1).join(':').split(',');
   }
 
@@ -47970,10 +47975,12 @@ var toArray = function (arrayLike) {
 
   var array = [];
   var length = arrayLike.length;
+  /* istanbul ignore next */
   for (var i = 0; i < length; i++) {
     array.push(arrayLike[i]);
   }
 
+  /* istanbul ignore next */
   return array;
 };
 
@@ -48189,377 +48196,45 @@ var values = function (obj) {
     return Object.values(obj);
   }
 
+  // fallback to keys()
+  /* istanbul ignore next */
   return obj[Object.keys(obj)[0]];
 };
 
-// 
-
-var ErrorBag = function ErrorBag () {
-  this.items = [];
-};
-
-ErrorBag.prototype[typeof Symbol === 'function' ? Symbol.iterator : '@@iterator'] = function () {
-    var this$1 = this;
-
-  var index = 0;
-  return {
-    next: function () {
-      return { value: this$1.items[index++], done: index > this$1.items.length };
-    }
-  };
-};
-
-/**
- * Adds an error to the internal array.
- */
-ErrorBag.prototype.add = function add (error) {
-    var ref;
-
-  // handle old signature.
-  if (arguments.length > 1) {
-    if (true) {
-      warn('This usage of "errors.add()" is deprecated, please consult the docs for the new signature. https://baianat.github.io/vee-validate/api/errorbag.html#api');
-    }
-
-    error = {
-      field: arguments[0],
-      msg: arguments[1],
-      rule: arguments[2],
-      scope: !isNullOrUndefined(arguments[3]) ? arguments[3] : null,
-      regenerate: null
-    };
+var parseSelector = function (selector) {
+  var rule = null;
+  if (includes(selector, ':')) {
+    rule = selector.split(':').pop();
+    selector = selector.replace((":" + rule), '');
   }
 
-  (ref = this.items).push.apply(
-    ref, this._normalizeError(error)
-  );
-};
-
-/**
- * Normalizes passed errors to an error array.
- */
-ErrorBag.prototype._normalizeError = function _normalizeError (error) {
-  if (Array.isArray(error)) {
-    return error.map(function (e) {
-      e.scope = !isNullOrUndefined(e.scope) ? e.scope : null;
-
-      return e;
-    });
-  }
-
-  error.scope = !isNullOrUndefined(error.scope) ? error.scope : null;
-
-  return [error];
-};
-
-/**
- * Regenrates error messages if they have a generator function.
- */
-ErrorBag.prototype.regenerate = function regenerate () {
-  this.items.forEach(function (i) {
-    i.msg = isCallable(i.regenerate) ? i.regenerate() : i.msg;
-  });
-};
-
-/**
- * Updates a field error with the new field scope.
- */
-ErrorBag.prototype.update = function update (id, error) {
-  var item = find(this.items, function (i) { return i.id === id; });
-  if (!item) {
-    return;
-  }
-
-  var idx = this.items.indexOf(item);
-  this.items.splice(idx, 1);
-  item.scope = error.scope;
-  this.items.push(item);
-};
-
-/**
- * Gets all error messages from the internal array.
- */
-ErrorBag.prototype.all = function all (scope) {
-  if (isNullOrUndefined(scope)) {
-    return this.items.map(function (e) { return e.msg; });
-  }
-
-  return this.items.filter(function (e) { return e.scope === scope; }).map(function (e) { return e.msg; });
-};
-
-/**
- * Checks if there are any errors in the internal array.
- */
-ErrorBag.prototype.any = function any (scope) {
-  if (isNullOrUndefined(scope)) {
-    return !!this.items.length;
-  }
-
-  return !!this.items.filter(function (e) { return e.scope === scope; }).length;
-};
-
-/**
- * Removes all items from the internal array.
- */
-ErrorBag.prototype.clear = function clear (scope) {
-    var this$1 = this;
-
-  if (isNullOrUndefined(scope)) {
-    scope = null;
-  }
-
-  for (var i = 0; i < this.items.length; ++i) {
-    if (this$1.items[i].scope === scope) {
-      this$1.items.splice(i, 1);
-      --i;
-    }
-  }
-};
-
-/**
- * Collects errors into groups or for a specific field.
- */
-ErrorBag.prototype.collect = function collect (field, scope, map) {
-    if ( map === void 0 ) map = true;
-
-  var groupErrors = function (items) {
-    var fieldsCount = 0;
-    var errors = items.reduce(function (collection, error) {
-      if (!collection[error.field]) {
-        collection[error.field] = [];
-        fieldsCount++;
-      }
-
-      collection[error.field].push(map ? error.msg : error);
-
-      return collection;
-    }, {});
-
-    // reduce the collection to be a single array.
-    if (fieldsCount <= 1) {
-      return values(errors)[0] || [];
-    }
-
-    return errors;
-  };
-
-  if (isNullOrUndefined(field)) {
-    return groupErrors(this.items);
-  }
-
-  var selector = isNullOrUndefined(scope) ? String(field) : (scope + "." + field);
-  var ref = this._makeCandidateFilters(selector);
-    var isPrimary = ref.isPrimary;
-    var isAlt = ref.isAlt;
-
-  var collected = this.items.reduce(function (prev, curr) {
-    if (isPrimary(curr)) {
-      prev.primary.push(curr);
-    }
-
-    if (isAlt(curr)) {
-      prev.alt.push(curr);
-    }
-
-    return prev;
-  }, { primary: [], alt: [] });
-
-  collected = collected.primary.length ? collected.primary : collected.alt;
-
-  return groupErrors(collected);
-};
-
-/**
- * Gets the internal array length.
- */
-ErrorBag.prototype.count = function count () {
-  return this.items.length;
-};
-
-/**
- * Finds and fetches the first error message for the specified field id.
- */
-ErrorBag.prototype.firstById = function firstById (id) {
-  var error = find(this.items, function (i) { return i.id === id; });
-
-  return error ? error.msg : undefined;
-};
-
-/**
- * Gets the first error message for a specific field.
- */
-ErrorBag.prototype.first = function first (field, scope) {
-    if ( scope === void 0 ) scope = null;
-
-  var selector = isNullOrUndefined(scope) ? field : (scope + "." + field);
-  var match = this._match(selector);
-
-  return match && match.msg;
-};
-
-/**
- * Returns the first error rule for the specified field
- */
-ErrorBag.prototype.firstRule = function firstRule (field, scope) {
-  var errors = this.collect(field, scope, false);
-
-  return (errors.length && errors[0].rule) || undefined;
-};
-
-/**
- * Checks if the internal array has at least one error for the specified field.
- */
-ErrorBag.prototype.has = function has (field, scope) {
-    if ( scope === void 0 ) scope = null;
-
-  return !!this.first(field, scope);
-};
-
-/**
- * Gets the first error message for a specific field and a rule.
- */
-ErrorBag.prototype.firstByRule = function firstByRule (name, rule, scope) {
-    if ( scope === void 0 ) scope = null;
-
-  var error = this.collect(name, scope, false).filter(function (e) { return e.rule === rule; })[0];
-
-  return (error && error.msg) || undefined;
-};
-
-/**
- * Gets the first error message for a specific field that not match the rule.
- */
-ErrorBag.prototype.firstNot = function firstNot (name, rule, scope) {
-    if ( rule === void 0 ) rule = 'required';
-    if ( scope === void 0 ) scope = null;
-
-  var error = this.collect(name, scope, false).filter(function (e) { return e.rule !== rule; })[0];
-
-  return (error && error.msg) || undefined;
-};
-
-/**
- * Removes errors by matching against the id or ids.
- */
-ErrorBag.prototype.removeById = function removeById (id) {
-    var this$1 = this;
-
-  if (Array.isArray(id)) {
-    // filter out the non-matching fields.
-    this.items = this.items.filter(function (i) { return id.indexOf(i.id) === -1; });
-    return;
-  }
-
-  for (var i = 0; i < this.items.length; ++i) {
-    if (this$1.items[i].id === id) {
-      this$1.items.splice(i, 1);
-      --i;
-    }
-  }
-};
-
-/**
- * Removes all error messages associated with a specific field.
- */
-ErrorBag.prototype.remove = function remove (field, scope) {
-    var this$1 = this;
-
-  if (isNullOrUndefined(field)) {
-    return;
-  }
-
-  var selector = isNullOrUndefined(scope) ? String(field) : (scope + "." + field);
-  var ref = this._makeCandidateFilters(selector);
-    var isPrimary = ref.isPrimary;
-
-  for (var i = 0; i < this.items.length; ++i) {
-    if (isPrimary(this$1.items[i])) {
-      this$1.items.splice(i, 1);
-      --i;
-    }
-  }
-};
-
-ErrorBag.prototype._makeCandidateFilters = function _makeCandidateFilters (selector) {
-  var matchesRule = function () { return true; };
-  var matchesScope = function () { return true; };
-  var matchesName = function () { return true; };
-
-  var ref = selector.match(/((?:[\w-\s])+\.)?((?:[\w-.*\s])+)(:\w+)?/);
-    var scope = ref[1];
-    var name = ref[2];
-    var rule = ref[3];
-  if (rule) {
-    rule = rule.replace(':', '');
-    matchesRule = function (item) { return item.rule === rule; };
-  }
-
-  // match by id, can be combined with rule selection.
-  if (selector.startsWith('#')) {
+  if (selector[0] === '#') {
     return {
-      isPrimary: function (item) { return matchesRule(item) && (function (item) { return selector.slice(1).startsWith(item.id); }); },
-      isAlt: function () { return false; }
+      id: selector.slice(1),
+      rule: rule,
+      name: null,
+      scope: null
     };
   }
 
-  if (isNullOrUndefined(scope)) {
-    // if no scope specified, make sure the found error has no scope.
-    matchesScope = function (item) { return isNullOrUndefined(item.scope); };
-  } else {
-    scope = scope.replace('.', '');
-    matchesScope = function (item) { return item.scope === scope; };
+  var scope = null;
+  var name = selector;
+  if (includes(selector, '.')) {
+    var parts = selector.split('.');
+    scope = parts[0];
+    name = parts.slice(1).join('.');
   }
-
-  if (!isNullOrUndefined(name) && name !== '*') {
-    matchesName = function (item) { return item.field === name; };
-  }
-
-  // matches the first candidate.
-  var isPrimary = function (item) {
-    return matchesName(item) && matchesRule(item) && matchesScope(item);
-  };
-
-  // matches a second candidate, which is a field with a name containing the '.' character.
-  var isAlt = function (item) {
-    return matchesRule(item) && item.field === (scope + "." + name);
-  };
 
   return {
-    isPrimary: isPrimary,
-    isAlt: isAlt
+    id: null,
+    scope: scope,
+    name: name,
+    rule: rule
   };
 };
 
-ErrorBag.prototype._match = function _match (selector) {
-  if (isNullOrUndefined(selector)) {
-    return undefined;
-  }
-
-  var ref = this._makeCandidateFilters(selector);
-    var isPrimary = ref.isPrimary;
-    var isAlt = ref.isAlt;
-
-  return this.items.reduce(function (prev, item, idx, arr) {
-    var isLast = idx === arr.length - 1;
-    if (prev.primary) {
-      return isLast ? prev.primary : prev;
-    }
-
-    if (isPrimary(item)) {
-      prev.primary = item;
-    }
-
-    if (isAlt(item)) {
-      prev.alt = item;
-    }
-
-    // keep going.
-    if (!isLast) {
-      return prev;
-    }
-
-    return prev.primary || prev.alt;
-  }, {});
+var includes = function (collection, item) {
+  return collection.indexOf(item) !== -1;
 };
 
 // 
@@ -48713,15 +48388,24 @@ var normalizeValue = function (value) {
 
 var normalizeFormat = function (locale) {
   // normalize messages
-  var messages = normalizeValue(locale.messages);
-  var custom = normalizeValue(locale.custom);
+  var dictionary = {};
+  if (locale.messages) {
+    dictionary.messages = normalizeValue(locale.messages);
+  }
 
-  return {
-    messages: messages,
-    custom: custom,
-    attributes: locale.attributes,
-    dateFormat: locale.dateFormat
-  };
+  if (locale.custom) {
+    dictionary.custom = normalizeValue(locale.custom);
+  }
+
+  if (locale.attributes) {
+    dictionary.attributes = locale.attributes;
+  }
+
+  if (!isNullOrUndefined(locale.dateFormat)) {
+    dictionary.dateFormat = locale.dateFormat;
+  }
+
+  return dictionary;
 };
 
 var I18nDictionary = function I18nDictionary (i18n, rootKey) {
@@ -48770,7 +48454,7 @@ I18nDictionary.prototype.getAttribute = function getAttribute (locale, key, fall
 I18nDictionary.prototype.getFieldMessage = function getFieldMessage (locale, field, key, data) {
   var path = (this.rootKey) + ".custom." + field + "." + key;
   if (this.i18n.te(path)) {
-    return this.i18n.t(path);
+    return this.i18n.t(path, locale, data);
   }
 
   return this.getMessage(locale, key, data);
@@ -48823,7 +48507,7 @@ var defaultConfig = {
   fieldsBagName: 'fields',
   classes: false,
   classNames: null,
-  events: 'input|blur',
+  events: 'input',
   inject: true,
   fastExit: true,
   aria: true,
@@ -48887,38 +48571,447 @@ Config.resolve = function resolve (context) {
 
 Object.defineProperties( Config, staticAccessors );
 
+// 
+
+var ErrorBag = function ErrorBag (errorBag, id) {
+  if ( errorBag === void 0 ) errorBag = null;
+  if ( id === void 0 ) id = null;
+
+  this.vmId = id || null;
+  // make this bag a mirror of the provided one, sharing the same items reference.
+  if (errorBag && errorBag instanceof ErrorBag) {
+    this.items = errorBag.items;
+  } else {
+    this.items = [];
+  }
+};
+
+ErrorBag.prototype[typeof Symbol === 'function' ? Symbol.iterator : '@@iterator'] = function () {
+    var this$1 = this;
+
+  var index = 0;
+  return {
+    next: function () {
+      return { value: this$1.items[index++], done: index > this$1.items.length };
+    }
+  };
+};
+
+/**
+ * Adds an error to the internal array.
+ */
+ErrorBag.prototype.add = function add (error) {
+    var ref;
+
+  (ref = this.items).push.apply(
+    ref, this._normalizeError(error)
+  );
+};
+
+/**
+ * Normalizes passed errors to an error array.
+ */
+ErrorBag.prototype._normalizeError = function _normalizeError (error) {
+    var this$1 = this;
+
+  if (Array.isArray(error)) {
+    return error.map(function (e) {
+      e.scope = !isNullOrUndefined(e.scope) ? e.scope : null;
+      e.vmId = !isNullOrUndefined(e.vmId) ? e.vmId : (this$1.vmId || null);
+
+      return e;
+    });
+  }
+
+  error.scope = !isNullOrUndefined(error.scope) ? error.scope : null;
+  error.vmId = !isNullOrUndefined(error.vmId) ? error.vmId : (this.vmId || null);
+
+  return [error];
+};
+
+/**
+ * Regenrates error messages if they have a generator function.
+ */
+ErrorBag.prototype.regenerate = function regenerate () {
+  this.items.forEach(function (i) {
+    i.msg = isCallable(i.regenerate) ? i.regenerate() : i.msg;
+  });
+};
+
+/**
+ * Updates a field error with the new field scope.
+ */
+ErrorBag.prototype.update = function update (id, error) {
+  var item = find(this.items, function (i) { return i.id === id; });
+  if (!item) {
+    return;
+  }
+
+  var idx = this.items.indexOf(item);
+  this.items.splice(idx, 1);
+  item.scope = error.scope;
+  this.items.push(item);
+};
+
+/**
+ * Gets all error messages from the internal array.
+ */
+ErrorBag.prototype.all = function all (scope) {
+    var this$1 = this;
+
+  var filterFn = function (item) {
+    var matchesScope = true;
+    var matchesVM = true;
+    if (!isNullOrUndefined(scope)) {
+      matchesScope = item.scope === scope;
+    }
+
+    if (!isNullOrUndefined(this$1.vmId)) {
+      matchesVM = item.vmId === this$1.vmId;
+    }
+
+    return matchesVM && matchesScope;
+  };
+
+  return this.items.filter(filterFn).map(function (e) { return e.msg; });
+};
+
+/**
+ * Checks if there are any errors in the internal array.
+ */
+ErrorBag.prototype.any = function any (scope) {
+    var this$1 = this;
+
+  var filterFn = function (item) {
+    var matchesScope = true;
+    if (!isNullOrUndefined(scope)) {
+      matchesScope = item.scope === scope;
+    }
+
+    if (!isNullOrUndefined(this$1.vmId)) {
+      matchesScope = item.vmId === this$1.vmId;
+    }
+
+    return matchesScope;
+  };
+
+  return !!this.items.filter(filterFn).length;
+};
+
+/**
+ * Removes all items from the internal array.
+ */
+ErrorBag.prototype.clear = function clear (scope) {
+    var this$1 = this;
+
+  var matchesVM = isNullOrUndefined(this.id) ? function () { return true; } : function (i) { return i.vmId === this$1.vmId; };
+  if (isNullOrUndefined(scope)) {
+    scope = null;
+  }
+
+  for (var i = 0; i < this.items.length; ++i) {
+    if (matchesVM(this$1.items[i]) && this$1.items[i].scope === scope) {
+      this$1.items.splice(i, 1);
+      --i;
+    }
+  }
+};
+
+/**
+ * Collects errors into groups or for a specific field.
+ */
+ErrorBag.prototype.collect = function collect (field, scope, map) {
+    var this$1 = this;
+    if ( map === void 0 ) map = true;
+
+  var isSingleField = !isNullOrUndefined(field) && !field.includes('*');
+  var groupErrors = function (items) {
+    var errors = items.reduce(function (collection, error) {
+      if (!isNullOrUndefined(this$1.vmId) && error.vmId !== this$1.vmId) {
+        return collection;
+      }
+
+      if (!collection[error.field]) {
+        collection[error.field] = [];
+      }
+
+      collection[error.field].push(map ? error.msg : error);
+
+      return collection;
+    }, {});
+
+    // reduce the collection to be a single array.
+    if (isSingleField) {
+      return values(errors)[0] || [];
+    }
+
+    return errors;
+  };
+
+  if (isNullOrUndefined(field)) {
+    return groupErrors(this.items);
+  }
+
+  var selector = isNullOrUndefined(scope) ? String(field) : (scope + "." + field);
+  var ref = this._makeCandidateFilters(selector);
+    var isPrimary = ref.isPrimary;
+    var isAlt = ref.isAlt;
+
+  var collected = this.items.reduce(function (prev, curr) {
+    if (isPrimary(curr)) {
+      prev.primary.push(curr);
+    }
+
+    if (isAlt(curr)) {
+      prev.alt.push(curr);
+    }
+
+    return prev;
+  }, { primary: [], alt: [] });
+
+  collected = collected.primary.length ? collected.primary : collected.alt;
+
+  return groupErrors(collected);
+};
+
+/**
+ * Gets the internal array length.
+ */
+ErrorBag.prototype.count = function count () {
+    var this$1 = this;
+
+  if (this.vmId) {
+    return this.items.filter(function (e) { return e.vmId === this$1.vmId; }).length;
+  }
+
+  return this.items.length;
+};
+
+/**
+ * Finds and fetches the first error message for the specified field id.
+ */
+ErrorBag.prototype.firstById = function firstById (id) {
+  var error = find(this.items, function (i) { return i.id === id; });
+
+  return error ? error.msg : undefined;
+};
+
+/**
+ * Gets the first error message for a specific field.
+ */
+ErrorBag.prototype.first = function first (field, scope) {
+    if ( scope === void 0 ) scope = null;
+
+  var selector = isNullOrUndefined(scope) ? field : (scope + "." + field);
+  var match = this._match(selector);
+
+  return match && match.msg;
+};
+
+/**
+ * Returns the first error rule for the specified field
+ */
+ErrorBag.prototype.firstRule = function firstRule (field, scope) {
+  var errors = this.collect(field, scope, false);
+
+  return (errors.length && errors[0].rule) || undefined;
+};
+
+/**
+ * Checks if the internal array has at least one error for the specified field.
+ */
+ErrorBag.prototype.has = function has (field, scope) {
+    if ( scope === void 0 ) scope = null;
+
+  return !!this.first(field, scope);
+};
+
+/**
+ * Gets the first error message for a specific field and a rule.
+ */
+ErrorBag.prototype.firstByRule = function firstByRule (name, rule, scope) {
+    if ( scope === void 0 ) scope = null;
+
+  var error = this.collect(name, scope, false).filter(function (e) { return e.rule === rule; })[0];
+
+  return (error && error.msg) || undefined;
+};
+
+/**
+ * Gets the first error message for a specific field that not match the rule.
+ */
+ErrorBag.prototype.firstNot = function firstNot (name, rule, scope) {
+    if ( rule === void 0 ) rule = 'required';
+    if ( scope === void 0 ) scope = null;
+
+  var error = this.collect(name, scope, false).filter(function (e) { return e.rule !== rule; })[0];
+
+  return (error && error.msg) || undefined;
+};
+
+/**
+ * Removes errors by matching against the id or ids.
+ */
+ErrorBag.prototype.removeById = function removeById (id) {
+    var this$1 = this;
+
+  var condition = function (item) { return item.id === id; };
+  if (Array.isArray(id)) {
+    condition = function (item) { return id.indexOf(item.id) !== -1; };
+  }
+
+  for (var i = 0; i < this.items.length; ++i) {
+    if (condition(this$1.items[i])) {
+      this$1.items.splice(i, 1);
+      --i;
+    }
+  }
+};
+
+/**
+ * Removes all error messages associated with a specific field.
+ */
+ErrorBag.prototype.remove = function remove (field, scope) {
+    var this$1 = this;
+
+  if (isNullOrUndefined(field)) {
+    return;
+  }
+
+  var selector = isNullOrUndefined(scope) ? String(field) : (scope + "." + field);
+  var ref = this._makeCandidateFilters(selector);
+    var isPrimary = ref.isPrimary;
+
+  for (var i = 0; i < this.items.length; ++i) {
+    if (isPrimary(this$1.items[i])) {
+      this$1.items.splice(i, 1);
+      --i;
+    }
+  }
+};
+
+ErrorBag.prototype._makeCandidateFilters = function _makeCandidateFilters (selector) {
+    var this$1 = this;
+
+  var matchesRule = function () { return true; };
+  var matchesScope = function () { return true; };
+  var matchesName = function () { return true; };
+  var matchesVM = function () { return true; };
+
+  var ref = parseSelector(selector);
+    var id = ref.id;
+    var rule = ref.rule;
+    var scope = ref.scope;
+    var name = ref.name;
+
+  if (rule) {
+    matchesRule = function (item) { return item.rule === rule; };
+  }
+
+  // match by id, can be combined with rule selection.
+  if (id) {
+    return {
+      isPrimary: function (item) { return matchesRule(item) && (function (item) { return id === item.id; }); },
+      isAlt: function () { return false; }
+    };
+  }
+
+  if (isNullOrUndefined(scope)) {
+    // if no scope specified, make sure the found error has no scope.
+    matchesScope = function (item) { return isNullOrUndefined(item.scope); };
+  } else {
+    matchesScope = function (item) { return item.scope === scope; };
+  }
+
+  if (!isNullOrUndefined(name) && name !== '*') {
+    matchesName = function (item) { return item.field === name; };
+  }
+
+  if (!isNullOrUndefined(this.vmId)) {
+    matchesVM = function (item) { return item.vmId === this$1.vmId; };
+  }
+
+  // matches the first candidate.
+  var isPrimary = function (item) {
+    return matchesVM(item) && matchesName(item) && matchesRule(item) && matchesScope(item);
+  };
+
+  // matches a second candidate, which is a field with a name containing the '.' character.
+  var isAlt = function (item) {
+    return matchesVM(item) && matchesRule(item) && item.field === (scope + "." + name);
+  };
+
+  return {
+    isPrimary: isPrimary,
+    isAlt: isAlt
+  };
+};
+
+ErrorBag.prototype._match = function _match (selector) {
+  if (isNullOrUndefined(selector)) {
+    return undefined;
+  }
+
+  var ref = this._makeCandidateFilters(selector);
+    var isPrimary = ref.isPrimary;
+    var isAlt = ref.isAlt;
+
+  return this.items.reduce(function (prev, item, idx, arr) {
+    var isLast = idx === arr.length - 1;
+    if (prev.primary) {
+      return isLast ? prev.primary : prev;
+    }
+
+    if (isPrimary(item)) {
+      prev.primary = item;
+    }
+
+    if (isAlt(item)) {
+      prev.alt = item;
+    }
+
+    // keep going.
+    if (!isLast) {
+      return prev;
+    }
+
+    return prev.primary || prev.alt;
+  }, {});
+};
+
 /**
  * Generates the options required to construct a field.
  */
-var Generator = function Generator () {};
+var Resolver = function Resolver () {};
 
-Generator.generate = function generate (el, binding, vnode) {
-  var model = Generator.resolveModel(binding, vnode);
+Resolver.generate = function generate (el, binding, vnode) {
+  var model = Resolver.resolveModel(binding, vnode);
   var options = Config.resolve(vnode.context);
 
   return {
-    name: Generator.resolveName(el, vnode),
+    name: Resolver.resolveName(el, vnode),
     el: el,
     listen: !binding.modifiers.disable,
-    scope: Generator.resolveScope(el, binding, vnode),
-    vm: Generator.makeVM(vnode.context),
+    bails: binding.modifiers.bails ? true : (binding.modifiers.continues === true ? false : undefined),
+    scope: Resolver.resolveScope(el, binding, vnode),
+    vm: Resolver.makeVM(vnode.context),
     expression: binding.value,
     component: vnode.componentInstance,
     classes: options.classes,
     classNames: options.classNames,
-    getter: Generator.resolveGetter(el, vnode, model),
-    events: Generator.resolveEvents(el, vnode) || options.events,
+    getter: Resolver.resolveGetter(el, vnode, model),
+    events: Resolver.resolveEvents(el, vnode) || options.events,
     model: model,
-    delay: Generator.resolveDelay(el, vnode, options),
-    rules: Generator.resolveRules(el, binding, vnode),
-    initial: !!binding.modifiers.initial,
+    delay: Resolver.resolveDelay(el, vnode, options),
+    rules: Resolver.resolveRules(el, binding, vnode),
+    immediate: !!binding.modifiers.initial || !!binding.modifiers.immediate,
     validity: options.validity,
     aria: options.aria,
-    initialValue: Generator.resolveInitialValue(vnode)
+    initialValue: Resolver.resolveInitialValue(vnode)
   };
 };
 
-Generator.getCtorConfig = function getCtorConfig (vnode) {
+Resolver.getCtorConfig = function getCtorConfig (vnode) {
   if (!vnode.componentInstance) { return null; }
 
   var config = getPath('componentInstance.$options.$_veeValidate', vnode);
@@ -48929,13 +49022,13 @@ Generator.getCtorConfig = function getCtorConfig (vnode) {
 /**
  * Resolves the rules defined on an element.
  */
-Generator.resolveRules = function resolveRules (el, binding, vnode) {
+Resolver.resolveRules = function resolveRules (el, binding, vnode) {
   var rules = '';
   if (!binding.value && (!binding || !binding.expression)) {
     rules = getDataAttribute(el, 'rules');
   }
 
-  if (binding.value && ~['string', 'object'].indexOf(typeof binding.value.rules)) {
+  if (binding.value && includes(['string', 'object'], typeof binding.value.rules)) {
     rules = binding.value.rules;
   } else if (binding.value) {
     rules = binding.value;
@@ -48951,7 +49044,7 @@ Generator.resolveRules = function resolveRules (el, binding, vnode) {
 /**
  * @param {*} vnode
  */
-Generator.resolveInitialValue = function resolveInitialValue (vnode) {
+Resolver.resolveInitialValue = function resolveInitialValue (vnode) {
   var model = vnode.data.model || find(vnode.data.directives, function (d) { return d.name === 'model'; });
 
   return model && model.value;
@@ -48961,7 +49054,7 @@ Generator.resolveInitialValue = function resolveInitialValue (vnode) {
  * Creates a non-circular partial VM instance from a Vue instance.
  * @param {*} vm
  */
-Generator.makeVM = function makeVM (vm) {
+Resolver.makeVM = function makeVM (vm) {
   return {
     get $el () {
       return vm.$el;
@@ -48984,7 +49077,7 @@ Generator.makeVM = function makeVM (vm) {
  * @param {*} vnode
  * @param {Object} options
  */
-Generator.resolveDelay = function resolveDelay (el, vnode, options) {
+Resolver.resolveDelay = function resolveDelay (el, vnode, options) {
   var delay = getDataAttribute(el, 'delay');
   var globalDelay = (options && 'delay' in options) ? options.delay : 0;
 
@@ -49008,7 +49101,7 @@ Generator.resolveDelay = function resolveDelay (el, vnode, options) {
  * @param {*} el
  * @param {*} vnode
  */
-Generator.resolveEvents = function resolveEvents (el, vnode) {
+Resolver.resolveEvents = function resolveEvents (el, vnode) {
   // resolve it from the root element.
   var events = getDataAttribute(el, 'validate-on');
 
@@ -49019,15 +49112,19 @@ Generator.resolveEvents = function resolveEvents (el, vnode) {
 
   // resolve it from $_veeValidate options.
   if (!events && vnode.componentInstance) {
-    var config = Generator.getCtorConfig(vnode);
+    var config = Resolver.getCtorConfig(vnode);
     events = config && config.events;
   }
 
+  if (!events && Config.current.events) {
+    events = Config.current.events;
+  }
+
   // resolve the model event if its configured for custom components.
-  if (!events && vnode.componentInstance) {
+  if (events && vnode.componentInstance && includes(events, 'input')) {
     var ref = vnode.componentInstance.$options.model || { event: 'input' };
       var event = ref.event;
-    events = event;
+    events = events.replace('input', event);
   }
 
   return events;
@@ -49038,7 +49135,7 @@ Generator.resolveEvents = function resolveEvents (el, vnode) {
  * @param {*} el
  * @param {*} binding
  */
-Generator.resolveScope = function resolveScope (el, binding, vnode) {
+Resolver.resolveScope = function resolveScope (el, binding, vnode) {
     if ( vnode === void 0 ) vnode = {};
 
   var scope = null;
@@ -49055,7 +49152,7 @@ Generator.resolveScope = function resolveScope (el, binding, vnode) {
  *
  * @return {Object}
  */
-Generator.resolveModel = function resolveModel (binding, vnode) {
+Resolver.resolveModel = function resolveModel (binding, vnode) {
   if (binding.arg) {
     return { expression: binding.arg };
   }
@@ -49080,7 +49177,7 @@ Generator.resolveModel = function resolveModel (binding, vnode) {
  * Resolves the field name to trigger validations.
  * @return {String} The field name.
  */
-Generator.resolveName = function resolveName (el, vnode) {
+Resolver.resolveName = function resolveName (el, vnode) {
   var name = getDataAttribute(el, 'name');
 
   if (!name && !vnode.componentInstance) {
@@ -49092,7 +49189,7 @@ Generator.resolveName = function resolveName (el, vnode) {
   }
 
   if (!name && vnode.componentInstance) {
-    var config = Generator.getCtorConfig(vnode);
+    var config = Resolver.getCtorConfig(vnode);
     if (config && isCallable(config.name)) {
       var boundGetter = config.name.bind(vnode.componentInstance);
 
@@ -49108,7 +49205,7 @@ Generator.resolveName = function resolveName (el, vnode) {
 /**
  * Returns a value getter input type.
  */
-Generator.resolveGetter = function resolveGetter (el, vnode, model) {
+Resolver.resolveGetter = function resolveGetter (el, vnode, model) {
   if (model && model.expression) {
     return function () {
       return getPath(model.expression, vnode.context);
@@ -49123,7 +49220,7 @@ Generator.resolveGetter = function resolveGetter (el, vnode, model) {
       };
     }
 
-    var config = Generator.getCtorConfig(vnode);
+    var config = Resolver.getCtorConfig(vnode);
     if (config && isCallable(config.value)) {
       var boundGetter = config.value.bind(vnode.componentInstance);
 
@@ -49169,9 +49266,722 @@ Generator.resolveGetter = function resolveGetter (el, vnode, model) {
 
 // 
 
+var RULES = {};
+var STRICT_MODE = true;
+
+var Validator = function Validator (validations, options) {
+  if ( options === void 0 ) options = { fastExit: true };
+
+  this.strict = STRICT_MODE;
+  this.errors = new ErrorBag();
+  this.fields = new FieldBag();
+  this._createFields(validations);
+  this.paused = false;
+  this.fastExit = !isNullOrUndefined(options && options.fastExit) ? options.fastExit : true;
+};
+
+var prototypeAccessors$2 = { rules: { configurable: true },flags: { configurable: true },dictionary: { configurable: true },_vm: { configurable: true },locale: { configurable: true } };
+var staticAccessors$1 = { rules: { configurable: true },dictionary: { configurable: true },locale: { configurable: true } };
+
+staticAccessors$1.rules.get = function () {
+  return RULES;
+};
+
+prototypeAccessors$2.rules.get = function () {
+  return RULES;
+};
+
+prototypeAccessors$2.flags.get = function () {
+  return this.fields.items.reduce(function (acc, field) {
+      var obj;
+
+    if (field.scope) {
+      acc[("$" + (field.scope))] = ( obj = {}, obj[field.name] = field.flags, obj );
+
+      return acc;
+    }
+
+    acc[field.name] = field.flags;
+
+    return acc;
+  }, {});
+};
+
+/**
+ * Getter for the dictionary.
+ */
+prototypeAccessors$2.dictionary.get = function () {
+  return Config.dependency('dictionary');
+};
+
+staticAccessors$1.dictionary.get = function () {
+  return Config.dependency('dictionary');
+};
+
+prototypeAccessors$2._vm.get = function () {
+  return Config.dependency('vm');
+};
+
+/**
+ * Getter for the current locale.
+ */
+prototypeAccessors$2.locale.get = function () {
+  return Validator.locale;
+};
+
+/**
+ * Setter for the validator locale.
+ */
+prototypeAccessors$2.locale.set = function (value) {
+  Validator.locale = value;
+};
+
+staticAccessors$1.locale.get = function () {
+  return this.dictionary.locale;
+};
+
+/**
+ * Setter for the validator locale.
+ */
+staticAccessors$1.locale.set = function (value) {
+  var hasChanged = value !== Validator.dictionary.locale;
+  Validator.dictionary.locale = value;
+  if (hasChanged && Config.dependency('vm')) {
+    Config.dependency('vm').$emit('localeChanged');
+  }
+};
+
+/**
+ * Static constructor.
+ */
+Validator.create = function create (validations, options) {
+  return new Validator(validations, options);
+};
+
+/**
+ * Adds a custom validator to the list of validation rules.
+ */
+Validator.extend = function extend (name, validator, options) {
+    if ( options === void 0 ) options = {};
+
+  Validator._guardExtend(name, validator);
+  Validator._merge(name, {
+    validator: validator,
+    options: assign({}, { hasTarget: false, immediate: true }, options || {})
+  });
+};
+
+/**
+ * Removes a rule from the list of validators.
+ */
+Validator.remove = function remove (name) {
+  delete RULES[name];
+};
+
+/**
+ * Checks if the given rule name is a rule that targets other fields.
+ */
+Validator.isTargetRule = function isTargetRule (name) {
+  return !!RULES[name] && RULES[name].options.hasTarget;
+};
+
+/**
+ * Sets the operating mode for all newly created validators.
+ * strictMode = true: Values without a rule are invalid and cause failure.
+ * strictMode = false: Values without a rule are valid and are skipped.
+ */
+Validator.setStrictMode = function setStrictMode (strictMode) {
+    if ( strictMode === void 0 ) strictMode = true;
+
+  STRICT_MODE = strictMode;
+};
+
+/**
+ * Adds and sets the current locale for the validator.
+ */
+Validator.prototype.localize = function localize (lang, dictionary) {
+  Validator.localize(lang, dictionary);
+};
+
+/**
+ * Adds and sets the current locale for the validator.
+ */
+Validator.localize = function localize (lang, dictionary) {
+    var obj;
+
+  if (isObject(lang)) {
+    Validator.dictionary.merge(lang);
+    return;
+  }
+
+  // merge the dictionary.
+  if (dictionary) {
+    var locale = lang || dictionary.name;
+    dictionary = assign({}, dictionary);
+    Validator.dictionary.merge(( obj = {}, obj[locale] = dictionary, obj ));
+  }
+
+  if (lang) {
+    // set the locale.
+    Validator.locale = lang;
+  }
+};
+
+/**
+ * Registers a field to be validated.
+ */
+Validator.prototype.attach = function attach (fieldOpts) {
+  // fixes initial value detection with v-model and select elements.
+  var value = fieldOpts.initialValue;
+  var field = new Field(fieldOpts);
+  this.fields.push(field);
+
+  // validate the field initially
+  if (field.immediate) {
+    this.validate(("#" + (field.id)), value || field.value);
+  } else {
+    this._validate(field, value || field.value, { initial: true }).then(function (result) {
+      field.flags.valid = result.valid;
+      field.flags.invalid = !result.valid;
+    });
+  }
+
+  return field;
+};
+
+/**
+ * Sets the flags on a field.
+ */
+Validator.prototype.flag = function flag (name, flags, uid) {
+    if ( uid === void 0 ) uid = null;
+
+  var field = this._resolveField(name, undefined, uid);
+  if (!field || !flags) {
+    return;
+  }
+
+  field.setFlags(flags);
+};
+
+/**
+ * Removes a field from the validator.
+ */
+Validator.prototype.detach = function detach (name, scope, uid) {
+  var field = isCallable(name.destroy) ? name : this._resolveField(name, scope, uid);
+  if (!field) { return; }
+
+  field.destroy();
+  this.errors.remove(field.name, field.scope, field.id);
+  this.fields.remove(field);
+};
+
+/**
+ * Adds a custom validator to the list of validation rules.
+ */
+Validator.prototype.extend = function extend (name, validator, options) {
+    if ( options === void 0 ) options = {};
+
+  Validator.extend(name, validator, options);
+};
+
+Validator.prototype.reset = function reset (matcher) {
+    var this$1 = this;
+
+  // two ticks
+  return this._vm.$nextTick().then(function () {
+    return this$1._vm.$nextTick();
+  }).then(function () {
+    this$1.fields.filter(matcher).forEach(function (field) {
+      field.reset(); // reset field flags.
+      this$1.errors.remove(field.name, field.scope, field.id);
+    });
+  });
+};
+
+/**
+ * Updates a field, updating both errors and flags.
+ */
+Validator.prototype.update = function update (id, ref) {
+    var scope = ref.scope;
+
+  var field = this._resolveField(("#" + id));
+  if (!field) { return; }
+
+  // remove old scope.
+  this.errors.update(id, { scope: scope });
+};
+
+/**
+ * Removes a rule from the list of validators.
+ */
+Validator.prototype.remove = function remove (name) {
+  Validator.remove(name);
+};
+
+/**
+ * Validates a value against a registered field validations.
+ */
+Validator.prototype.validate = function validate (fieldDescriptor, value, ref) {
+    var this$1 = this;
+    if ( ref === void 0 ) ref = {};
+    var silent = ref.silent;
+    var vmId = ref.vmId;
+
+  if (this.paused) { return Promise.resolve(true); }
+
+  // overload to validate all.
+  if (isNullOrUndefined(fieldDescriptor)) {
+    return this.validateScopes({ silent: silent, vmId: vmId });
+  }
+
+  // overload to validate scope-less fields.
+  if (fieldDescriptor === '*') {
+    return this.validateAll(undefined, { silent: silent, vmId: vmId });
+  }
+
+  // if scope validation was requested.
+  if (/^(.+)\.\*$/.test(fieldDescriptor)) {
+    var matched = fieldDescriptor.match(/^(.+)\.\*$/)[1];
+    return this.validateAll(matched);
+  }
+
+  var field = this._resolveField(fieldDescriptor);
+  if (!field) {
+    return this._handleFieldNotFound(name);
+  }
+
+  if (!silent) { field.flags.pending = true; }
+  if (value === undefined) {
+    value = field.value;
+  }
+
+  return this._validate(field, value).then(function (result) {
+    if (!silent) {
+      this$1._handleValidationResults([result]);
+    }
+
+    return result.valid;
+  });
+};
+
+/**
+ * Pauses the validator.
+ */
+Validator.prototype.pause = function pause () {
+  this.paused = true;
+
+  return this;
+};
+
+/**
+ * Resumes the validator.
+ */
+Validator.prototype.resume = function resume () {
+  this.paused = false;
+
+  return this;
+};
+
+/**
+ * Validates each value against the corresponding field validations.
+ */
+Validator.prototype.validateAll = function validateAll (values$$1, ref) {
+    var this$1 = this;
+    if ( ref === void 0 ) ref = {};
+    var silent = ref.silent;
+    var vmId = ref.vmId;
+
+  if (this.paused) { return Promise.resolve(true); }
+
+  var matcher = null;
+  var providedValues = false;
+
+  if (typeof values$$1 === 'string') {
+    matcher = { scope: values$$1, vmId: vmId };
+  } else if (isObject(values$$1)) {
+    matcher = Object.keys(values$$1).map(function (key) {
+      return { name: key, vmId: vmId, scope: null };
+    });
+    providedValues = true;
+  } else if (Array.isArray(values$$1)) {
+    matcher = values$$1.map(function (key) {
+      return { name: key, vmId: vmId };
+    });
+  } else {
+    matcher = { scope: null, vmId: vmId };
+  }
+
+  return Promise.all(
+    this.fields.filter(matcher).map(function (field) { return this$1._validate(field, providedValues ? values$$1[field.name] : field.value); })
+  ).then(function (results) {
+    if (!silent) {
+      this$1._handleValidationResults(results);
+    }
+
+    return results.every(function (t) { return t.valid; });
+  });
+};
+
+/**
+ * Validates all scopes.
+ */
+Validator.prototype.validateScopes = function validateScopes (ref) {
+    var this$1 = this;
+    if ( ref === void 0 ) ref = {};
+    var silent = ref.silent;
+    var vmId = ref.vmId;
+
+  if (this.paused) { return Promise.resolve(true); }
+
+  return Promise.all(
+    this.fields.filter({ vmId: vmId }).map(function (field) { return this$1._validate(field, field.value); })
+  ).then(function (results) {
+    if (!silent) {
+      this$1._handleValidationResults(results);
+    }
+
+    return results.every(function (t) { return t.valid; });
+  });
+};
+
+/**
+ * Perform cleanup.
+ */
+Validator.prototype.destroy = function destroy () {
+  this._vm.$off('localeChanged');
+};
+
+/**
+ * Creates the fields to be validated.
+ */
+Validator.prototype._createFields = function _createFields (validations) {
+    var this$1 = this;
+
+  if (!validations) { return; }
+
+  Object.keys(validations).forEach(function (field) {
+    var options = assign({}, { name: field, rules: validations[field] });
+    this$1.attach(options);
+  });
+};
+
+/**
+ * Date rules need the existence of a format, so date_format must be supplied.
+ */
+Validator.prototype._getDateFormat = function _getDateFormat (validations) {
+  var format = null;
+  if (validations.date_format && Array.isArray(validations.date_format)) {
+    format = validations.date_format[0];
+  }
+
+  return format || this.dictionary.getDateFormat(this.locale);
+};
+
+/**
+ * Formats an error message for field and a rule.
+ */
+Validator.prototype._formatErrorMessage = function _formatErrorMessage (field, rule, data, targetName) {
+    if ( data === void 0 ) data = {};
+    if ( targetName === void 0 ) targetName = null;
+
+  var name = this._getFieldDisplayName(field);
+  var params = this._getLocalizedParams(rule, targetName);
+
+  return this.dictionary.getFieldMessage(this.locale, field.name, rule.name, [name, params, data]);
+};
+
+/**
+ * Translates the parameters passed to the rule (mainly for target fields).
+ */
+Validator.prototype._getLocalizedParams = function _getLocalizedParams (rule, targetName) {
+    if ( targetName === void 0 ) targetName = null;
+
+  if (rule.options.hasTarget && rule.params && rule.params[0]) {
+    var localizedName = targetName || this.dictionary.getAttribute(this.locale, rule.params[0], rule.params[0]);
+    return [localizedName].concat(rule.params.slice(1));
+  }
+
+  return rule.params;
+};
+
+/**
+ * Resolves an appropriate display name, first checking 'data-as' or the registered 'prettyName'
+ */
+Validator.prototype._getFieldDisplayName = function _getFieldDisplayName (field) {
+  return field.alias || this.dictionary.getAttribute(this.locale, field.name, field.name);
+};
+
+/**
+ * Tests a single input value against a rule.
+ */
+Validator.prototype._test = function _test (field, value, rule) {
+    var this$1 = this;
+
+  var validator = RULES[rule.name] ? RULES[rule.name].validate : null;
+  var params = Array.isArray(rule.params) ? toArray(rule.params) : [];
+  var targetName = null;
+  if (!validator || typeof validator !== 'function') {
+    return Promise.reject(createError(("No such validator '" + (rule.name) + "' exists.")));
+  }
+
+  // has field dependencies.
+  if (rule.options.hasTarget) {
+    var target = find(field.dependencies, function (d) { return d.name === rule.name; });
+    if (target) {
+      targetName = target.field.alias;
+      params = [target.field.value].concat(params.slice(1));
+    }
+  } else if (rule.name === 'required' && field.rejectsFalse) {
+    // invalidate false if no args were specified and the field rejects false by default.
+    params = params.length ? params : [true];
+  }
+
+  if (rule.options.isDate) {
+    var dateFormat = this._getDateFormat(field.rules);
+    if (rule.name !== 'date_format') {
+      params.push(dateFormat);
+    }
+  }
+
+  var result = validator(value, params);
+
+  // If it is a promise.
+  if (isCallable(result.then)) {
+    return result.then(function (values$$1) {
+      var allValid = true;
+      var data = {};
+      if (Array.isArray(values$$1)) {
+        allValid = values$$1.every(function (t) { return (isObject(t) ? t.valid : t); });
+      } else { // Is a single object/boolean.
+        allValid = isObject(values$$1) ? values$$1.valid : values$$1;
+        data = values$$1.data;
+      }
+
+      return {
+        valid: allValid,
+        errors: allValid ? [] : [this$1._createFieldError(field, rule, data, targetName)]
+      };
+    });
+  }
+
+  if (!isObject(result)) {
+    result = { valid: result, data: {} };
+  }
+
+  return {
+    valid: result.valid,
+    errors: result.valid ? [] : [this._createFieldError(field, rule, result.data, targetName)]
+  };
+};
+
+/**
+ * Merges a validator object into the RULES and Messages.
+ */
+Validator._merge = function _merge (name, ref) {
+    var validator = ref.validator;
+    var options = ref.options;
+
+  var validate = isCallable(validator) ? validator : validator.validate;
+  if (validator.getMessage) {
+    Validator.dictionary.setMessage(Validator.locale, name, validator.getMessage);
+  }
+
+  RULES[name] = {
+    validate: validate,
+    options: options
+  };
+};
+
+/**
+ * Guards from extension violations.
+ */
+Validator._guardExtend = function _guardExtend (name, validator) {
+  if (isCallable(validator)) {
+    return;
+  }
+
+  if (!isCallable(validator.validate)) {
+    throw createError(
+      ("Extension Error: The validator '" + name + "' must be a function or have a 'validate' method.")
+    );
+  }
+};
+
+/**
+ * Creates a Field Error Object.
+ */
+Validator.prototype._createFieldError = function _createFieldError (field, rule, data, targetName) {
+    var this$1 = this;
+
+  return {
+    id: field.id,
+    vmId: field.vmId,
+    field: field.name,
+    msg: this._formatErrorMessage(field, rule, data, targetName),
+    rule: rule.name,
+    scope: field.scope,
+    regenerate: function () {
+      return this$1._formatErrorMessage(field, rule, data, targetName);
+    }
+  };
+};
+
+/**
+ * Tries different strategies to find a field.
+ */
+Validator.prototype._resolveField = function _resolveField (name, scope, uid) {
+  if (name[0] === '#') {
+    return this.fields.find({ id: name.slice(1) });
+  }
+
+  if (!isNullOrUndefined(scope)) {
+    return this.fields.find({ name: name, scope: scope, vmId: uid });
+  }
+
+  if (includes(name, '.')) {
+    var ref = name.split('.');
+      var fieldScope = ref[0];
+      var fieldName = ref.slice(1);
+    var field = this.fields.find({ name: fieldName.join('.'), scope: fieldScope, vmId: uid });
+    if (field) {
+      return field;
+    }
+  }
+
+  return this.fields.find({ name: name, scope: null, vmId: uid });
+};
+
+/**
+ * Handles when a field is not found depending on the strict flag.
+ */
+Validator.prototype._handleFieldNotFound = function _handleFieldNotFound (name, scope) {
+  if (!this.strict) { return Promise.resolve(true); }
+
+  var fullName = isNullOrUndefined(scope) ? name : ("" + (!isNullOrUndefined(scope) ? scope + '.' : '') + name);
+
+  return Promise.reject(createError(
+    ("Validating a non-existent field: \"" + fullName + "\". Use \"attach()\" first.")
+  ));
+};
+
+/**
+ * Handles validation results.
+ */
+Validator.prototype._handleValidationResults = function _handleValidationResults (results) {
+    var this$1 = this;
+
+  var matchers = results.map(function (result) { return ({ id: result.id }); });
+  this.errors.removeById(matchers.map(function (m) { return m.id; }));
+  // remove by name and scope to remove any custom errors added.
+  results.forEach(function (result) {
+    this$1.errors.remove(result.field, result.scope);
+  });
+  var allErrors = results.reduce(function (prev, curr) {
+    prev.push.apply(prev, curr.errors);
+
+    return prev;
+  }, []);
+
+  this.errors.add(allErrors);
+
+  // handle flags.
+  this.fields.filter(matchers).forEach(function (field) {
+    var result = find(results, function (r) { return r.id === field.id; });
+    field.setFlags({
+      pending: false,
+      valid: result.valid,
+      validated: true
+    });
+  });
+};
+
+Validator.prototype._shouldSkip = function _shouldSkip (field, value) {
+  // field is configured to run through the pipeline regardless
+  if (field.bails === false) {
+    return false;
+  }
+
+  // disabled fields are skipped
+  if (field.isDisabled) {
+    return true;
+  }
+
+  // skip if the field is not required and has an empty value.
+  return !field.isRequired && (isNullOrUndefined(value) || value === '');
+};
+
+Validator.prototype._shouldBail = function _shouldBail (field, value) {
+  // if the field was configured explicitly.
+  if (field.bails !== undefined) {
+    return field.bails;
+  }
+
+  return this.fastExit;
+};
+
+/**
+ * Starts the validation process.
+ */
+Validator.prototype._validate = function _validate (field, value, ref) {
+    var this$1 = this;
+    if ( ref === void 0 ) ref = {};
+    var initial = ref.initial;
+
+  if (this._shouldSkip(field, value)) {
+    return Promise.resolve({ valid: true, id: field.id, field: field.name, scope: field.scope, errors: [] });
+  }
+
+  var promises = [];
+  var errors = [];
+  var isExitEarly = false;
+  // use of '.some()' is to break iteration in middle by returning true
+  Object.keys(field.rules).filter(function (rule) {
+    if (!initial || !RULES[rule]) { return true; }
+
+    return RULES[rule].options.immediate;
+  }).some(function (rule) {
+    var ruleOptions = RULES[rule] ? RULES[rule].options : {};
+    var result = this$1._test(field, value, { name: rule, params: field.rules[rule], options: ruleOptions });
+    if (isCallable(result.then)) {
+      promises.push(result);
+    } else if (!result.valid && this$1._shouldBail(field, value)) {
+      errors.push.apply(errors, result.errors);
+      isExitEarly = true;
+    } else {
+      // promisify the result.
+      promises.push(new Promise(function (resolve) { return resolve(result); }));
+    }
+
+    return isExitEarly;
+  });
+
+  if (isExitEarly) {
+    return Promise.resolve({ valid: false, errors: errors, id: field.id, field: field.name, scope: field.scope });
+  }
+
+  return Promise.all(promises).then(function (results) {
+    return results.reduce(function (prev, v) {
+        var ref;
+
+      if (!v.valid) {
+        (ref = prev.errors).push.apply(ref, v.errors);
+      }
+
+      prev.valid = prev.valid && v.valid;
+
+      return prev;
+    }, { valid: true, errors: errors, id: field.id, field: field.name, scope: field.scope });
+  });
+};
+
+Object.defineProperties( Validator.prototype, prototypeAccessors$2 );
+Object.defineProperties( Validator, staticAccessors$1 );
+
+// 
+
 var DEFAULT_OPTIONS = {
   targetOf: null,
-  initial: false,
+  immediate: false,
   scope: null,
   listen: true,
   name: null,
@@ -49199,6 +50009,7 @@ var Field = function Field (options) {
   this.el = options.el;
   this.updated = false;
   this.dependencies = [];
+  this.vmId = options.vmId;
   this.watchers = [];
   this.events = [];
   this.delay = 0;
@@ -49211,17 +50022,17 @@ var Field = function Field (options) {
   this.aria = options.aria;
   this.flags = createFlags();
   this.vm = options.vm;
-  this.component = options.component;
-  this.ctorConfig = this.component ? getPath('$options.$_veeValidate', this.component) : undefined;
+  this.componentInstance = options.component;
+  this.ctorConfig = this.componentInstance ? getPath('$options.$_veeValidate', this.componentInstance) : undefined;
   this.update(options);
   // set initial value.
   this.initialValue = this.value;
   this.updated = false;
 };
 
-var prototypeAccessors$2 = { validator: { configurable: true },isRequired: { configurable: true },isDisabled: { configurable: true },alias: { configurable: true },value: { configurable: true },rejectsFalse: { configurable: true } };
+var prototypeAccessors$3 = { validator: { configurable: true },isRequired: { configurable: true },isDisabled: { configurable: true },alias: { configurable: true },value: { configurable: true },bails: { configurable: true },rejectsFalse: { configurable: true } };
 
-prototypeAccessors$2.validator.get = function () {
+prototypeAccessors$3.validator.get = function () {
   if (!this.vm || !this.vm.$validator) {
     return { validate: function () {} };
   }
@@ -49229,18 +50040,18 @@ prototypeAccessors$2.validator.get = function () {
   return this.vm.$validator;
 };
 
-prototypeAccessors$2.isRequired.get = function () {
+prototypeAccessors$3.isRequired.get = function () {
   return !!this.rules.required;
 };
 
-prototypeAccessors$2.isDisabled.get = function () {
-  return !!(this.component && this.component.disabled) || !!(this.el && this.el.disabled);
+prototypeAccessors$3.isDisabled.get = function () {
+  return !!(this.componentInstance && this.componentInstance.disabled) || !!(this.el && this.el.disabled);
 };
 
 /**
  * Gets the display name (user-friendly name).
  */
-prototypeAccessors$2.alias.get = function () {
+prototypeAccessors$3.alias.get = function () {
   if (this._alias) {
     return this._alias;
   }
@@ -49250,8 +50061,8 @@ prototypeAccessors$2.alias.get = function () {
     alias = getDataAttribute(this.el, 'as');
   }
 
-  if (!alias && this.component) {
-    return this.component.$attrs && this.component.$attrs['data-vv-as'];
+  if (!alias && this.componentInstance) {
+    return this.componentInstance.$attrs && this.componentInstance.$attrs['data-vv-as'];
   }
 
   return alias;
@@ -49261,7 +50072,7 @@ prototypeAccessors$2.alias.get = function () {
  * Gets the input value.
  */
 
-prototypeAccessors$2.value.get = function () {
+prototypeAccessors$3.value.get = function () {
   if (!isCallable(this.getter)) {
     return undefined;
   }
@@ -49269,12 +50080,16 @@ prototypeAccessors$2.value.get = function () {
   return this.getter();
 };
 
+prototypeAccessors$3.bails.get = function () {
+  return this._bails;
+};
+
 /**
  * If the field rejects false as a valid value for the required rule.
  */
 
-prototypeAccessors$2.rejectsFalse.get = function () {
-  if (this.component && this.ctorConfig) {
+prototypeAccessors$3.rejectsFalse.get = function () {
+  if (this.componentInstance && this.ctorConfig) {
     return !!this.ctorConfig.rejectsFalse;
   }
 
@@ -49289,12 +50104,19 @@ prototypeAccessors$2.rejectsFalse.get = function () {
  * Determines if the instance matches the options provided.
  */
 Field.prototype.matches = function matches (options) {
+    var this$1 = this;
+
   if (!options) {
     return true;
   }
 
   if (options.id) {
     return this.id === options.id;
+  }
+
+  var matchesComponentId = isNullOrUndefined(options.vmId) ? function () { return true; } : function (id) { return id === this$1.vmId; };
+  if (!matchesComponentId(options.vmId)) {
+    return false;
   }
 
   if (options.name === undefined && options.scope === undefined) {
@@ -49326,7 +50148,7 @@ Field.prototype._cacheId = function _cacheId (options) {
  */
 Field.prototype.update = function update (options) {
   this.targetOf = options.targetOf || null;
-  this.initial = options.initial || this.initial || false;
+  this.immediate = options.immediate || this.immediate || false;
 
   // update errors scope if the field scope was changed.
   if (!isNullOrUndefined(options.scope) && options.scope !== this.scope && isCallable(this.validator.update)) {
@@ -49336,9 +50158,10 @@ Field.prototype.update = function update (options) {
     : !isNullOrUndefined(this.scope) ? this.scope : null;
   this.name = (!isNullOrUndefined(options.name) ? String(options.name) : options.name) || this.name || null;
   this.rules = options.rules !== undefined ? normalizeRules(options.rules) : this.rules;
+  this._bails = options.bails !== undefined ? options.bails : this._bails;
   this.model = options.model || this.model;
   this.listen = options.listen !== undefined ? options.listen : this.listen;
-  this.classes = (options.classes || this.classes || false) && !this.component;
+  this.classes = (options.classes || this.classes || false) && !this.componentInstance;
   this.classNames = isObject(options.classNames) ? merge(this.classNames, options.classNames) : this.classNames;
   this.getter = isCallable(options.getter) ? options.getter : this.getter;
   this._alias = options.alias || this._alias;
@@ -49469,7 +50292,7 @@ Field.prototype.updateDependencies = function updateDependencies () {
       delay: this$1.delay,
       scope: this$1.scope,
       events: this$1.events.join('|'),
-      initial: this$1.initial,
+      immediate: this$1.immediate,
       targetOf: this$1.id
     };
 
@@ -49477,10 +50300,10 @@ Field.prototype.updateDependencies = function updateDependencies () {
     if (isCallable(el.$watch)) {
       options.component = el;
       options.el = el.$el;
-      options.getter = Generator.resolveGetter(el.$el, el.$vnode);
+      options.getter = Resolver.resolveGetter(el.$el, el.$vnode);
     } else {
       options.el = el;
-      options.getter = Generator.resolveGetter(el, {});
+      options.getter = Resolver.resolveGetter(el, {});
     }
 
     this$1.dependencies.push({ name: name, field: new Field(options) });
@@ -49570,19 +50393,19 @@ Field.prototype.addActionListeners = function addActionListeners () {
     this$1.unwatch(/^class_input$/);
   };
 
-  if (this.component && isCallable(this.component.$once)) {
-    this.component.$once('input', onInput);
-    this.component.$once('blur', onBlur);
+  if (this.componentInstance && isCallable(this.componentInstance.$once)) {
+    this.componentInstance.$once('input', onInput);
+    this.componentInstance.$once('blur', onBlur);
     this.watchers.push({
       tag: 'class_input',
       unwatch: function () {
-        this$1.component.$off('input', onInput);
+        this$1.componentInstance.$off('input', onInput);
       }
     });
     this.watchers.push({
       tag: 'class_blur',
       unwatch: function () {
-        this$1.component.$off('blur', onBlur);
+        this$1.componentInstance.$off('blur', onBlur);
       }
     });
     return;
@@ -49619,6 +50442,45 @@ Field.prototype.checkValueChanged = function checkValueChanged () {
 };
 
 /**
+ * Determines the suitable primary event to listen for.
+ */
+Field.prototype._determineInputEvent = function _determineInputEvent () {
+  // if its a custom component, use the customized model event or the input event.
+  if (this.componentInstance) {
+    return (this.componentInstance.$options.model && this.componentInstance.$options.model.event) || 'input';
+  }
+
+  if (this.model) {
+    return this.model.lazy ? 'change' : 'input';
+  }
+
+  if (isTextInput(this.el)) {
+    return 'input';
+  }
+
+  return 'change';
+};
+
+/**
+ * Determines the list of events to listen to.
+ */
+Field.prototype._determineEventList = function _determineEventList (defaultInputEvent) {
+  // if no event is configured, or it is a component or a text input then respect the user choice.
+  if (!this.events.length || this.componentInstance || isTextInput(this.el)) {
+    return [].concat( this.events );
+  }
+
+  // force suitable event for non-text type fields.
+  return this.events.map(function (e) {
+    if (e === 'input') {
+      return defaultInputEvent;
+    }
+
+    return e;
+  });
+};
+
+/**
  * Adds the listeners required for validation.
  */
 Field.prototype.addValueListeners = function addValueListeners () {
@@ -49643,18 +50505,11 @@ Field.prototype.addValueListeners = function addValueListeners () {
     this$1.validator.validate(("#" + (this$1.id)), args[0]);
   };
 
-  var inputEvent = this.component || isTextInput(this.el) ? 'input' : 'change';
-  inputEvent = this.model && this.model.lazy ? 'change' : inputEvent;
-  if (this.component && this.component.$options.model) {
-    inputEvent = this.component.$options.model.event;
-  }
-
-  // force change event for non-text type fields, otherwise use the configured.
-  // if no event is configured then respect the user choice.
-  var events = !this.events.length || this.component || isTextInput(this.el) ? this.events : ['change'];
+  var inputEvent = this._determineInputEvent();
+  var events = this._determineEventList(inputEvent);
 
   // if there is a model and an on input validation is requested.
-  if (this.model && events.indexOf(inputEvent) !== -1) {
+  if (this.model && includes(events, inputEvent)) {
     var ctx = null;
     var expression = this.model.expression;
     // if its watchable from the context vm.
@@ -49664,9 +50519,9 @@ Field.prototype.addValueListeners = function addValueListeners () {
     }
 
     // watch it from the custom component vm instead.
-    if (!expression && this.component && this.component.$options.model) {
-      ctx = this.component;
-      expression = this.component.$options.model.prop || 'value';
+    if (!expression && this.componentInstance && this.componentInstance.$options.model) {
+      ctx = this.componentInstance;
+      expression = this.componentInstance.$options.model.prop || 'value';
     }
 
     if (ctx && expression) {
@@ -49709,13 +50564,13 @@ Field.prototype.addValueListeners = function addValueListeners () {
 Field.prototype._addComponentEventListener = function _addComponentEventListener (evt, validate) {
     var this$1 = this;
 
-  if (!this.component) { return; }
+  if (!this.componentInstance) { return; }
 
-  this.component.$on(evt, validate);
+  this.componentInstance.$on(evt, validate);
   this.watchers.push({
     tag: 'input_vue',
     unwatch: function () {
-      this$1.component.$off(evt, validate);
+      this$1.componentInstance.$off(evt, validate);
     }
   });
 };
@@ -49723,7 +50578,7 @@ Field.prototype._addComponentEventListener = function _addComponentEventListener
 Field.prototype._addHTMLEventListener = function _addHTMLEventListener (evt, validate) {
     var this$1 = this;
 
-  if (!this.el || this.component) { return; }
+  if (!this.el || this.componentInstance) { return; }
 
   // listen for the current element.
   var addListener = function (el) {
@@ -49787,20 +50642,27 @@ Field.prototype.updateCustomValidity = function updateCustomValidity () {
  * Removes all listeners.
  */
 Field.prototype.destroy = function destroy () {
+  // ignore the result of any ongoing validation.
+  if (this._cancellationToken) {
+    this._cancellationToken.cancelled = true;
+  }
+
   this.unwatch();
   this.dependencies.forEach(function (d) { return d.field.destroy(); });
   this.dependencies = [];
 };
 
-Object.defineProperties( Field.prototype, prototypeAccessors$2 );
+Object.defineProperties( Field.prototype, prototypeAccessors$3 );
 
 // 
 
-var FieldBag = function FieldBag () {
-  this.items = [];
+var FieldBag = function FieldBag (items) {
+  if ( items === void 0 ) items = [];
+
+  this.items = items || [];
 };
 
-var prototypeAccessors$3 = { length: { configurable: true } };
+var prototypeAccessors$4 = { length: { configurable: true } };
 
 FieldBag.prototype[typeof Symbol === 'function' ? Symbol.iterator : '@@iterator'] = function () {
     var this$1 = this;
@@ -49817,7 +50679,7 @@ FieldBag.prototype[typeof Symbol === 'function' ? Symbol.iterator : '@@iterator'
  * Gets the current items length.
  */
 
-prototypeAccessors$3.length.get = function () {
+prototypeAccessors$4.length.get = function () {
   return this.items.length;
 };
 
@@ -49885,744 +50747,149 @@ FieldBag.prototype.push = function push (item) {
   this.items.push(item);
 };
 
-Object.defineProperties( FieldBag.prototype, prototypeAccessors$3 );
+Object.defineProperties( FieldBag.prototype, prototypeAccessors$4 );
 
-// 
+var ScopedValidator = function ScopedValidator (base, vm) {
+  this.id = vm._uid;
+  this._base = base;
+  this._paused = false;
 
-var RULES = {};
-var STRICT_MODE = true;
-var TARGET_RULES = ['confirmed', 'after', 'before'];
-
-var Validator = function Validator (validations, options) {
-  var this$1 = this;
-  if ( options === void 0 ) options = { fastExit: true };
-
-  this.strict = STRICT_MODE;
-  this.errors = new ErrorBag();
-  this.fields = new FieldBag();
-  this.flags = {};
-  this._createFields(validations);
-  this.paused = false;
-  this.fastExit = options.fastExit || false;
-  this.ownerId = options.vm && options.vm._uid;
-  this._localeListener = function () {
-    this$1.errors.regenerate();
-  };
-
-  // skip listening in SSR
-  if (this._vm && typeof window !== 'undefined') {
-    this._vm.$on('localeChanged', this._localeListener);
-  }
+  // create a mirror bag with limited component scope.
+  this.errors = new ErrorBag(base.errors, this.id);
 };
 
-var prototypeAccessors$4 = { dictionary: { configurable: true },_vm: { configurable: true },locale: { configurable: true },rules: { configurable: true } };
-var staticAccessors$1 = { dictionary: { configurable: true },locale: { configurable: true },rules: { configurable: true } };
+var prototypeAccessors$5 = { flags: { configurable: true },rules: { configurable: true },fields: { configurable: true },dictionary: { configurable: true },locale: { configurable: true } };
 
-/**
- * Getter for the dictionary.
- */
-prototypeAccessors$4.dictionary.get = function () {
-  return Config.dependency('dictionary');
-};
-
-prototypeAccessors$4._vm.get = function () {
-  return Config.dependency('vm');
-};
-
-/**
- * Static Getter for the dictionary.
- */
-staticAccessors$1.dictionary.get = function () {
-  return Config.dependency('dictionary');
-};
-
-/**
- * Getter for the current locale.
- */
-prototypeAccessors$4.locale.get = function () {
-  return this.dictionary.locale;
-};
-
-/**
- * Setter for the validator locale.
- */
-prototypeAccessors$4.locale.set = function (value) {
-  Validator.locale = value;
-};
-
-/**
-* Static getter for the validator locale.
-*/
-staticAccessors$1.locale.get = function () {
-  return Validator.dictionary.locale;
-};
-
-/**
- * Static setter for the validator locale.
- */
-staticAccessors$1.locale.set = function (value) {
-  var hasChanged = value !== Validator.dictionary.locale;
-  Validator.dictionary.locale = value;
-  if (hasChanged && Config.dependency('vm')) {
-    Config.dependency('vm').$emit('localeChanged');
-  }
-};
-
-/**
- * Getter for the rules object.
- */
-prototypeAccessors$4.rules.get = function () {
-  return RULES;
-};
-
-/**
- * Static Getter for the rules object.
- */
-staticAccessors$1.rules.get = function () {
-  return RULES;
-};
-
-/**
- * Static constructor.
- */
-Validator.create = function create (validations, options) {
-  return new Validator(validations, options);
-};
-
-/**
- * Adds a custom validator to the list of validation rules.
- */
-Validator.extend = function extend (name, validator, options) {
-    if ( options === void 0 ) options = {};
-
-  Validator._guardExtend(name, validator);
-  Validator._merge(name, validator);
-  if (options && options.hasTarget) {
-    TARGET_RULES.push(name);
-  }
-};
-
-/**
- * Removes a rule from the list of validators.
- */
-Validator.remove = function remove (name) {
-  delete RULES[name];
-  var idx = TARGET_RULES.indexOf(name);
-  if (idx === -1) { return; }
-
-  TARGET_RULES.splice(idx, 1);
-};
-
-/**
- * Checks if the given rule name is a rule that targets other fields.
- */
-Validator.isTargetRule = function isTargetRule (name) {
-  return TARGET_RULES.indexOf(name) !== -1;
-};
-
-/**
- * Sets the operating mode for all newly created validators.
- * strictMode = true: Values without a rule are invalid and cause failure.
- * strictMode = false: Values without a rule are valid and are skipped.
- */
-Validator.setStrictMode = function setStrictMode (strictMode) {
-    if ( strictMode === void 0 ) strictMode = true;
-
-  STRICT_MODE = strictMode;
-};
-
-/**
- * Adds and sets the current locale for the validator.
- */
-Validator.prototype.localize = function localize (lang, dictionary) {
-  Validator.localize(lang, dictionary);
-};
-
-/**
- * Adds and sets the current locale for the validator.
- */
-Validator.localize = function localize (lang, dictionary) {
-    var obj;
-
-  if (isObject(lang)) {
-    Validator.dictionary.merge(lang);
-    return;
-  }
-
-  // merge the dictionary.
-  if (dictionary) {
-    var locale = lang || dictionary.name;
-    dictionary = assign({}, dictionary);
-    Validator.dictionary.merge(( obj = {}, obj[locale] = dictionary, obj ));
-  }
-
-  if (lang) {
-    // set the locale.
-    Validator.locale = lang;
-  }
-};
-
-/**
- * Registers a field to be validated.
- */
-Validator.prototype.attach = function attach (field) {
-  // deprecate: handle old signature.
-  /* istanbul ignore next */
-  if (arguments.length > 1) {
-    if (true) {
-      warn('This signature of the attach method has been deprecated, please consult the docs.');
-    }
-
-    field = assign({}, {
-      name: arguments[0],
-      rules: arguments[1]
-    }, arguments[2] || { vm: { $validator: this } });
-  }
-
-  // fixes initial value detection with v-model and select elements.
-  var value = field.initialValue;
-  if (!(field instanceof Field)) {
-    field = new Field(field);
-  }
-
-  this.fields.push(field);
-
-  // validate the field initially
-  if (field.initial) {
-    this.validate(("#" + (field.id)), value || field.value);
-  } else {
-    this._validate(field, value || field.value, true).then(function (result) {
-      field.flags.valid = result.valid;
-      field.flags.invalid = !result.valid;
-    });
-  }
-
-  this._addFlag(field, field.scope);
-  return field;
-};
-
-/**
- * Sets the flags on a field.
- */
-Validator.prototype.flag = function flag (name, flags) {
-  var field = this._resolveField(name);
-  if (! field || !flags) {
-    return;
-  }
-
-  field.setFlags(flags);
-};
-
-/**
- * Removes a field from the validator.
- */
-Validator.prototype.detach = function detach (name, scope) {
-  var field = name instanceof Field ? name : this._resolveField(name, scope);
-  if (!field) { return; }
-
-  field.destroy();
-  this.errors.remove(field.name, field.scope, field.id);
-  this.fields.remove(field);
-  var flags = this.flags;
-  if (!isNullOrUndefined(field.scope) && flags[("$" + (field.scope))]) {
-    delete flags[("$" + (field.scope))][field.name];
-  } else if (isNullOrUndefined(field.scope)) {
-    delete flags[field.name];
-  }
-
-  this.flags = assign({}, flags);
-};
-
-/**
- * Adds a custom validator to the list of validation rules.
- */
-Validator.prototype.extend = function extend (name, validator, options) {
-    if ( options === void 0 ) options = {};
-
-  Validator.extend(name, validator, options);
-};
-
-Validator.prototype.reset = function reset (matcher) {
+prototypeAccessors$5.flags.get = function () {
     var this$1 = this;
 
-  // two ticks
-  return this._vm.$nextTick().then(function () {
-    return this$1._vm.$nextTick();
-  }).then(function () {
-    this$1.fields.filter(matcher).forEach(function (field) {
-      field.reset(); // reset field flags.
-      this$1.errors.remove(field.name, field.scope, field.id);
-    });
-  });
-};
-
-/**
- * Updates a field, updating both errors and flags.
- */
-Validator.prototype.update = function update (id, ref) {
-    var scope = ref.scope;
-
-  var field = this._resolveField(("#" + id));
-  if (!field) { return; }
-
-  // remove old scope.
-  this.errors.update(id, { scope: scope });
-  if (!isNullOrUndefined(field.scope) && this.flags[("$" + (field.scope))]) {
-    delete this.flags[("$" + (field.scope))][field.name];
-  } else if (isNullOrUndefined(field.scope)) {
-    delete this.flags[field.name];
-  }
-
-  this._addFlag(field, scope);
-};
-
-/**
- * Removes a rule from the list of validators.
- */
-Validator.prototype.remove = function remove (name) {
-  Validator.remove(name);
-};
-
-/**
- * Validates a value against a registered field validations.
- */
-Validator.prototype.validate = function validate (name, value, scope, silent) {
-    var this$1 = this;
-    if ( scope === void 0 ) scope = null;
-    if ( silent === void 0 ) silent = false;
-
-  if (this.paused) { return Promise.resolve(true); }
-
-  // overload to validate all.
-  if (arguments.length === 0) {
-    return this.validateScopes();
-  }
-
-  // overload to validate scope-less fields.
-  if (arguments.length === 1 && arguments[0] === '*') {
-    return this.validateAll();
-  }
-
-  // overload to validate a scope.
-  if (arguments.length === 1 && typeof arguments[0] === 'string' && /^(.+)\.\*$/.test(arguments[0])) {
-    var matched = arguments[0].match(/^(.+)\.\*$/)[1];
-    return this.validateAll(matched);
-  }
-
-  var field = this._resolveField(name, scope);
-  if (!field) {
-    return this._handleFieldNotFound(name, scope);
-  }
-
-  if (!silent) { field.flags.pending = true; }
-  if (arguments.length === 1) {
-    value = field.value;
-  }
-
-  return this._validate(field, value).then(function (result) {
-    if (!silent) {
-      this$1._handleValidationResults([result]);
-    }
-
-    return result.valid;
-  });
-};
-
-/**
- * Pauses the validator.
- */
-Validator.prototype.pause = function pause () {
-  this.paused = true;
-
-  return this;
-};
-
-/**
- * Resumes the validator.
- */
-Validator.prototype.resume = function resume () {
-  this.paused = false;
-
-  return this;
-};
-
-/**
- * Validates each value against the corresponding field validations.
- */
-Validator.prototype.validateAll = function validateAll (values$$1, scope, silent) {
-    var this$1 = this;
-    if ( scope === void 0 ) scope = null;
-    if ( silent === void 0 ) silent = false;
-
-  if (this.paused) { return Promise.resolve(true); }
-
-  var matcher = null;
-  var providedValues = false;
-
-  if (typeof values$$1 === 'string') {
-    matcher = { scope: values$$1 };
-  } else if (isObject(values$$1)) {
-    matcher = Object.keys(values$$1).map(function (key) {
-      return { name: key, scope: scope };
-    });
-    providedValues = true;
-  } else if (Array.isArray(values$$1)) {
-    matcher = values$$1.map(function (key) {
-      return { name: key, scope: scope };
-    });
-  } else {
-    matcher = { scope: scope };
-  }
-
-  return Promise.all(
-    this.fields.filter(matcher).map(function (field) { return this$1._validate(field, providedValues ? values$$1[field.name] : field.value); })
-  ).then(function (results) {
-    if (!silent) {
-      this$1._handleValidationResults(results);
-    }
-
-    return results.every(function (t) { return t.valid; });
-  });
-};
-
-/**
- * Validates all scopes.
- */
-Validator.prototype.validateScopes = function validateScopes (silent) {
-    var this$1 = this;
-    if ( silent === void 0 ) silent = false;
-
-  if (this.paused) { return Promise.resolve(true); }
-
-  return Promise.all(
-    this.fields.map(function (field) { return this$1._validate(field, field.value); })
-  ).then(function (results) {
-    if (!silent) {
-      this$1._handleValidationResults(results);
-    }
-
-    return results.every(function (t) { return t.valid; });
-  });
-};
-
-/**
- * Perform cleanup.
- */
-Validator.prototype.destroy = function destroy () {
-  this._vm.$off('localeChanged', this._localeListener);
-};
-
-/**
- * Creates the fields to be validated.
- */
-Validator.prototype._createFields = function _createFields (validations) {
-    var this$1 = this;
-
-  if (!validations) { return; }
-
-  Object.keys(validations).forEach(function (field) {
-    var options = assign({}, { name: field, rules: validations[field] });
-    this$1.attach(options);
-  });
-};
-
-/**
- * Date rules need the existence of a format, so date_format must be supplied.
- */
-Validator.prototype._getDateFormat = function _getDateFormat (validations) {
-  var format = null;
-  if (validations.date_format && Array.isArray(validations.date_format)) {
-    format = validations.date_format[0];
-  }
-
-  return format || this.dictionary.getDateFormat(this.locale);
-};
-
-/**
- * Checks if the passed rule is a date rule.
- */
-Validator.prototype._isADateRule = function _isADateRule (rule) {
-  return !! ~['after', 'before', 'date_between', 'date_format'].indexOf(rule);
-};
-
-/**
- * Formats an error message for field and a rule.
- */
-Validator.prototype._formatErrorMessage = function _formatErrorMessage (field, rule, data, targetName) {
-    if ( data === void 0 ) data = {};
-    if ( targetName === void 0 ) targetName = null;
-
-  var name = this._getFieldDisplayName(field);
-  var params = this._getLocalizedParams(rule, targetName);
-
-  return this.dictionary.getFieldMessage(this.locale, field.name, rule.name, [name, params, data]);
-};
-
-/**
- * Translates the parameters passed to the rule (mainly for target fields).
- */
-Validator.prototype._getLocalizedParams = function _getLocalizedParams (rule, targetName) {
-    if ( targetName === void 0 ) targetName = null;
-
-  if (~TARGET_RULES.indexOf(rule.name) && rule.params && rule.params[0]) {
-    var localizedName = targetName || this.dictionary.getAttribute(this.locale, rule.params[0], rule.params[0]);
-    return [localizedName].concat(rule.params.slice(1));
-  }
-
-  return rule.params;
-};
-
-/**
- * Resolves an appropriate display name, first checking 'data-as' or the registered 'prettyName'
- */
-Validator.prototype._getFieldDisplayName = function _getFieldDisplayName (field) {
-  return field.alias || this.dictionary.getAttribute(this.locale, field.name, field.name);
-};
-
-/**
- * Adds a field flags to the flags collection.
- */
-Validator.prototype._addFlag = function _addFlag (field, scope) {
-    var obj, obj$1, obj$2;
-
-    if ( scope === void 0 ) scope = null;
-  if (isNullOrUndefined(scope)) {
-    this.flags = assign({}, this.flags, ( obj = {}, obj[("" + (field.name))] = field.flags, obj ));
-    return;
-  }
-
-  var scopeObj = assign({}, this.flags[("$" + scope)] || {}, ( obj$1 = {}, obj$1[("" + (field.name))] = field.flags, obj$1 ));
-  this.flags = assign({}, this.flags, ( obj$2 = {}, obj$2[("$" + scope)] = scopeObj, obj$2 ));
-};
-
-/**
- * Tests a single input value against a rule.
- */
-Validator.prototype._test = function _test (field, value, rule) {
-    var this$1 = this;
-
-  var validator = RULES[rule.name];
-  var params = Array.isArray(rule.params) ? toArray(rule.params) : [];
-  var targetName = null;
-  if (!validator || typeof validator !== 'function') {
-    return Promise.reject(createError(("No such validator '" + (rule.name) + "' exists.")));
-  }
-
-  // has field dependencies.
-  if (TARGET_RULES.indexOf(rule.name) !== -1) {
-    var target = find(field.dependencies, function (d) { return d.name === rule.name; });
-    if (target) {
-      targetName = target.field.alias;
-      params = [target.field.value].concat(params.slice(1));
-    }
-  } else if (rule.name === 'required' && field.rejectsFalse) {
-    // invalidate false if no args were specified and the field rejects false by default.
-    params = params.length ? params : [true];
-  }
-
-  if (this._isADateRule(rule.name)) {
-    var dateFormat = this._getDateFormat(field.rules);
-    if (rule.name !== 'date_format') {
-      params.push(dateFormat);
-    }
-  }
-
-  var result = validator(value, params);
-
-  // If it is a promise.
-  if (isCallable(result.then)) {
-    return result.then(function (values$$1) {
-      var allValid = true;
-      var data = {};
-      if (Array.isArray(values$$1)) {
-        allValid = values$$1.every(function (t) { return (isObject(t) ? t.valid : t); });
-      } else { // Is a single object/boolean.
-        allValid = isObject(values$$1) ? values$$1.valid : values$$1;
-        data = values$$1.data;
+  return this._base.fields.items.filter(function (f) { return f.vmId === this$1.id; }).reduce(function (acc, field) {
+    if (field.scope) {
+      if (!acc[("$" + (field.scope))]) {
+        acc[("$" + (field.scope))] = {};
       }
 
-      return {
-        valid: allValid,
-        errors: allValid ? [] : [this$1._createFieldError(field, rule, data, targetName)]
-      };
-    });
-  }
-
-  if (!isObject(result)) {
-    result = { valid: result, data: {} };
-  }
-
-  return {
-    valid: result.valid,
-    errors: result.valid ? [] : [this._createFieldError(field, rule, result.data, targetName)]
-  };
-};
-
-/**
- * Merges a validator object into the RULES and Messages.
- */
-Validator._merge = function _merge (name, validator) {
-  if (isCallable(validator)) {
-    RULES[name] = validator;
-    return;
-  }
-
-  RULES[name] = validator.validate;
-  if (validator.getMessage) {
-    Validator.dictionary.setMessage(this.locale, name, validator.getMessage);
-  }
-};
-
-/**
- * Guards from extension violations.
- */
-Validator._guardExtend = function _guardExtend (name, validator) {
-  if (isCallable(validator)) {
-    return;
-  }
-
-  if (!isCallable(validator.validate)) {
-    throw createError(
-      ("Extension Error: The validator '" + name + "' must be a function or have a 'validate' method.")
-    );
-  }
-};
-
-/**
- * Creates a Field Error Object.
- */
-Validator.prototype._createFieldError = function _createFieldError (field, rule, data, targetName) {
-    var this$1 = this;
-
-  return {
-    id: field.id,
-    field: field.name,
-    msg: this._formatErrorMessage(field, rule, data, targetName),
-    rule: rule.name,
-    scope: field.scope,
-    regenerate: function () {
-      return this$1._formatErrorMessage(field, rule, data, targetName);
-    }
-  };
-};
-
-/**
- * Tries different strategies to find a field.
- */
-Validator.prototype._resolveField = function _resolveField (name, scope) {
-  if (!isNullOrUndefined(scope)) {
-    return this.fields.find({ name: name, scope: scope });
-  }
-
-  if (name[0] === '#') {
-    return this.fields.find({ id: name.slice(1) });
-  }
-
-  if (name.indexOf('.') > -1) {
-    var ref = name.split('.');
-      var fieldScope = ref[0];
-      var fieldName = ref.slice(1);
-    var field = this.fields.find({ name: fieldName.join('.'), scope: fieldScope });
-    if (field) {
-      return field;
-    }
-  }
-
-  return this.fields.find({ name: name, scope: null });
-};
-
-/**
- * Handles when a field is not found depending on the strict flag.
- */
-Validator.prototype._handleFieldNotFound = function _handleFieldNotFound (name, scope) {
-  if (!this.strict) { return Promise.resolve(true); }
-
-  var fullName = isNullOrUndefined(scope) ? name : ("" + (!isNullOrUndefined(scope) ? scope + '.' : '') + name);
-
-  return Promise.reject(createError(
-    ("Validating a non-existent field: \"" + fullName + "\". Use \"attach()\" first.")
-  ));
-};
-
-Validator.prototype._handleValidationResults = function _handleValidationResults (results) {
-    var this$1 = this;
-
-  var matchers = results.map(function (result) { return ({ id: result.id }); });
-  this.errors.removeById(matchers.map(function (m) { return m.id; }));
-  // remove by name and scope to remove any custom errors added.
-  results.forEach(function (result) {
-    this$1.errors.remove(result.field, result.scope);
-  });
-  var allErrors = results.reduce(function (prev, curr) {
-    prev.push.apply(prev, curr.errors);
-
-    return prev;
-  }, []);
-
-  this.errors.add(allErrors);
-
-  // handle flags.
-  this.fields.filter(matchers).forEach(function (field) {
-    var result = find(results, function (r) { return r.id === field.id; });
-    field.setFlags({
-      pending: false,
-      valid: result.valid,
-      validated: true
-    });
-  });
-};
-
-/**
- * Starts the validation process.
- */
-Validator.prototype._validate = function _validate (field, value) {
-    var this$1 = this;
-
-  // if field is disabled and is not required.
-  if (field.isDisabled || (!field.isRequired && (isNullOrUndefined(value) || value === ''))) {
-    return Promise.resolve({ valid: true, id: field.id, field: field.name, scope: field.scope, errors: [] });
-  }
-
-  var promises = [];
-  var errors = [];
-  var isExitEarly = false;
-  // use of '.some()' is to break iteration in middle by returning true
-  Object.keys(field.rules).some(function (rule) {
-    var result = this$1._test(field, value, { name: rule, params: field.rules[rule] });
-    if (isCallable(result.then)) {
-      promises.push(result);
-    } else if (this$1.fastExit && !result.valid) {
-      errors.push.apply(errors, result.errors);
-      isExitEarly = true;
-    } else {
-      // promisify the result.
-      promises.push(new Promise(function (resolve) { return resolve(result); }));
+      acc[("$" + (field.scope))][field.name] = field.flags;
     }
 
-    return isExitEarly;
-  });
+    acc[field.name] = field.flags;
 
-  if (isExitEarly) {
-    return Promise.resolve({ valid: false, errors: errors, id: field.id, field: field.name, scope: field.scope });
-  }
-
-  return Promise.all(promises).then(function (results) {
-    return results.reduce(function (prev, v) {
-        var ref;
-
-      if (!v.valid) {
-        (ref = prev.errors).push.apply(ref, v.errors);
-      }
-
-      prev.valid = prev.valid && v.valid;
-
-      return prev;
-    }, { valid: true, errors: errors, id: field.id, field: field.name, scope: field.scope });
-  });
+    return acc;
+  }, {});
 };
 
-Object.defineProperties( Validator.prototype, prototypeAccessors$4 );
-Object.defineProperties( Validator, staticAccessors$1 );
+prototypeAccessors$5.rules.get = function () {
+  return this._base.rules;
+};
+
+prototypeAccessors$5.fields.get = function () {
+  return new FieldBag(this._base.fields.filter({ vmId: this.id }));
+};
+
+prototypeAccessors$5.dictionary.get = function () {
+  return this._base.dictionary;
+};
+
+prototypeAccessors$5.locale.get = function () {
+  return this._base.locale;
+};
+
+prototypeAccessors$5.locale.set = function (val) {
+  this._base.locale = val;
+};
+
+ScopedValidator.prototype.localize = function localize () {
+    var ref;
+
+    var args = [], len = arguments.length;
+    while ( len-- ) args[ len ] = arguments[ len ];
+  return (ref = this._base).localize.apply(ref, args);
+};
+
+ScopedValidator.prototype.update = function update () {
+    var ref;
+
+    var args = [], len = arguments.length;
+    while ( len-- ) args[ len ] = arguments[ len ];
+  return (ref = this._base).update.apply(ref, args);
+};
+
+ScopedValidator.prototype.attach = function attach (opts) {
+  var attachOpts = assign({}, opts, { vmId: this.id });
+
+  return this._base.attach(attachOpts);
+};
+
+ScopedValidator.prototype.pause = function pause () {
+  this._paused = true;
+};
+
+ScopedValidator.prototype.resume = function resume () {
+  this._paused = false;
+};
+
+ScopedValidator.prototype.remove = function remove (ruleName) {
+  return this._base.remove(ruleName);
+};
+
+ScopedValidator.prototype.detach = function detach () {
+    var ref;
+
+    var args = [], len = arguments.length;
+    while ( len-- ) args[ len ] = arguments[ len ];
+  return (ref = this._base).detach.apply(ref, args.concat( [this.id] ));
+};
+
+ScopedValidator.prototype.extend = function extend () {
+    var ref;
+
+    var args = [], len = arguments.length;
+    while ( len-- ) args[ len ] = arguments[ len ];
+  return (ref = this._base).extend.apply(ref, args);
+};
+
+ScopedValidator.prototype.validate = function validate (descriptor, value, opts) {
+    if ( opts === void 0 ) opts = {};
+
+  if (this._paused) { return Promise.resolve(true); }
+
+  return this._base.validate(descriptor, value, assign({}, { vmId: this.id }, opts || {}));
+};
+
+ScopedValidator.prototype.validateAll = function validateAll (values$$1, opts) {
+    if ( opts === void 0 ) opts = {};
+
+  if (this._paused) { return Promise.resolve(true); }
+
+  return this._base.validateAll(values$$1, assign({}, { vmId: this.id }, opts || {}));
+};
+
+ScopedValidator.prototype.validateScopes = function validateScopes (opts) {
+    if ( opts === void 0 ) opts = {};
+
+  if (this._paused) { return Promise.resolve(true); }
+
+  return this._base.validateScopes(assign({}, { vmId: this.id }, opts || {}));
+};
+
+ScopedValidator.prototype.destroy = function destroy () {
+  delete this.id;
+  delete this._base;
+};
+
+ScopedValidator.prototype.reset = function reset (matcher) {
+  return this._base.reset(Object.assign({}, matcher || {}, { vmId: this.id }));
+};
+
+ScopedValidator.prototype.flag = function flag () {
+    var ref;
+
+    var args = [], len = arguments.length;
+    while ( len-- ) args[ len ] = arguments[ len ];
+  return (ref = this._base).flag.apply(ref, args.concat( [this.id] ));
+};
+
+Object.defineProperties( ScopedValidator.prototype, prototypeAccessors$5 );
 
 // 
 
@@ -50636,11 +50903,6 @@ var requestsValidator = function (injections) {
 
   return false;
 };
-
-/**
- * Creates a validator instance.
- */
-var createValidator = function (vm, options) { return new Validator(null, { vm: vm, fastExit: options.fastExit }); };
 
 var mixin = {
   provide: function provide () {
@@ -50664,18 +50926,17 @@ var mixin = {
     }
 
     var options = Config.resolve(this);
-    var Vue = this.$options._base; // the vue constructor.
 
     // if its a root instance, inject anyways, or if it requested a new instance.
     if (!this.$parent || (this.$options.$_veeValidate && /new/.test(this.$options.$_veeValidate.validator))) {
-      this.$validator = createValidator(this, options);
+      this.$validator = new ScopedValidator(Config.dependency('validator'), this);
     }
 
     var requested = requestsValidator(this.$options.inject);
 
     // if automatic injection is enabled and no instance was requested.
     if (! this.$validator && options.inject && !requested) {
-      this.$validator = createValidator(this, options);
+      this.$validator = new ScopedValidator(Config.dependency('validator'), this);
     }
 
     // don't inject errors or fieldBag as no validator was resolved.
@@ -50684,9 +50945,9 @@ var mixin = {
     }
 
     // There is a validator but it isn't injected, mark as reactive.
-    if (! requested && this.$validator) {
+    if (!requested && this.$validator) {
+      var Vue = this.$options._base; // the vue constructor.
       Vue.util.defineReactive(this.$validator, 'errors', this.$validator.errors);
-      Vue.util.defineReactive(this.$validator, 'flags', this.$validator.flags);
     }
 
     if (! this.$options.computed) {
@@ -50697,16 +50958,26 @@ var mixin = {
       return this.$validator.errors;
     };
     this.$options.computed[options.fieldsBagName || 'fields'] = function fieldBagGetter () {
-      return this.$validator.flags;
+      return this.$validator.fields.items.reduce(function (acc, field) {
+        if (field.scope) {
+          if (!acc[("$" + (field.scope))]) {
+            acc[("$" + (field.scope))] = {};
+          }
+
+          acc[("$" + (field.scope))][field.name] = field.flags;
+
+          return acc;
+        }
+
+        acc[field.name] = field.flags;
+
+        return acc;
+      }, {});
     };
   },
   beforeDestroy: function beforeDestroy () {
-    if (isBuiltInComponent(this.$vnode)) { return; }
-
-    // mark the validator paused to prevent delayed validation.
-    if (this.$validator && this.$validator.ownerId === this._uid) {
-      this.$validator.pause();
-      this.$validator.destroy();
+    if (this.$validator && this._uid === this.$validator.id) {
+      this.$validator.errors.clear(); // remove errors generated by this component.
     }
   }
 };
@@ -50734,12 +51005,12 @@ var directive = {
       return;
     }
 
-    var fieldOptions = Generator.generate(el, binding, vnode);
+    var fieldOptions = Resolver.generate(el, binding, vnode);
     validator.attach(fieldOptions);
   },
   inserted: function inserted (el, binding, vnode) {
     var field = findField(el, vnode.context);
-    var scope = Generator.resolveScope(el, binding, vnode);
+    var scope = Resolver.resolveScope(el, binding, vnode);
 
     // skip if scope hasn't changed.
     if (!field || scope === field.scope) { return; }
@@ -50755,8 +51026,8 @@ var directive = {
 
     // make sure we don't do unneccasary work if no important change was done.
     if (!field || (field.updated && isEqual(binding.value, binding.oldValue))) { return; }
-    var scope = Generator.resolveScope(el, binding, vnode);
-    var rules = Generator.resolveRules(el, binding, vnode);
+    var scope = Resolver.resolveScope(el, binding, vnode);
+    var rules = Resolver.resolveRules(el, binding, vnode);
 
     field.update({
       scope: scope,
@@ -50787,8 +51058,15 @@ function install (_Vue, options) {
 
   detectPassiveSupport();
   Vue = _Vue;
-  var localVue = new Vue();
+  var validator = new Validator(null, options);
+  var localVue = new Vue({
+    data: function () { return ({
+      errors: validator.errors,
+      fields: validator.fields
+    }); }
+  });
   Config.register('vm', localVue);
+  Config.register('validator', validator);
   Config.merge(options);
 
   var ref = Config.current;
@@ -50796,18 +51074,24 @@ function install (_Vue, options) {
   var i18n = ref.i18n;
 
   if (dictionary) {
-    Validator.localize(dictionary); // merge the dictionary.
+    validator.localize(dictionary); // merge the dictionary.
   }
 
-  // try to watch locale changes.
-  if (i18n && i18n._vm && isCallable(i18n._vm.$watch)) {
-    i18n._vm.$watch('locale', function () {
-      localVue.$emit('localeChanged');
-    });
+  var onLocaleChanged = function () {
+    validator.errors.regenerate();
+  };
+
+  // watch locale changes using localVue instance or i18n.
+  if (!i18n) {
+    if (typeof window !== 'undefined') {
+      localVue.$on('localeChanged', onLocaleChanged);
+    }
+  } else {
+    i18n._vm.$watch('locale', onLocaleChanged);
   }
 
   if (!i18n && options.locale) {
-    Validator.localize(options.locale); // set the locale
+    validator.localize(options.locale); // set the locale
   }
 
   Validator.setStrictMode(Config.current.strict);
@@ -53602,7 +53886,7 @@ function parseDate$1 (date, format$$1) {
   return parsed;
 }
 
-function after (value, ref) {
+var afterValidator = function (value, ref) {
   var otherValue = ref[0];
   var inclusion = ref[1];
   var format$$1 = ref[2];
@@ -53620,7 +53904,17 @@ function after (value, ref) {
   }
 
   return isAfter(value, otherValue) || (inclusion && isEqual$1(value, otherValue));
-}
+};
+
+var options = {
+  hasTarget: true,
+  isDate: true
+};
+
+var after = {
+  validate: afterValidator,
+  options: options
+};
 
 /**
  * Some Alpha Regex helpers.
@@ -53723,6 +54017,10 @@ var validate = function (value, ref) {
   return (alpha[locale] || alpha.en).test(value);
 };
 
+var alpha$1 = {
+  validate: validate
+};
+
 var validate$1 = function (value, ref) {
   if ( ref === void 0 ) ref = [];
   var locale = ref[0]; if ( locale === void 0 ) locale = null;
@@ -53737,6 +54035,10 @@ var validate$1 = function (value, ref) {
   }
 
   return (alphaDash[locale] || alphaDash.en).test(value);
+};
+
+var alpha_dash = {
+  validate: validate$1
 };
 
 var validate$2 = function (value, ref) {
@@ -53755,6 +54057,10 @@ var validate$2 = function (value, ref) {
   return (alphanumeric[locale] || alphanumeric.en).test(value);
 };
 
+var alpha_num = {
+  validate: validate$2
+};
+
 var validate$3 = function (value, ref) {
   if ( ref === void 0 ) ref = [];
   var locale = ref[0]; if ( locale === void 0 ) locale = null;
@@ -53771,7 +54077,11 @@ var validate$3 = function (value, ref) {
   return (alphaSpaces[locale] || alphaSpaces.en).test(value);
 };
 
-function before (value, ref) {
+var alpha_spaces = {
+  validate: validate$3
+};
+
+var validate$4 = function (value, ref) {
   var otherValue = ref[0];
   var inclusion = ref[1];
   var format$$1 = ref[2];
@@ -53789,20 +54099,42 @@ function before (value, ref) {
   }
 
   return isBefore(value, otherValue) || (inclusion && isEqual$1(value, otherValue));
-}
+};
 
-var validate$4 = function (value, ref) {
+var options$1 = {
+  hasTarget: true,
+  isDate: true
+};
+
+var before = {
+  validate: validate$4,
+  options: options$1
+};
+
+var validate$5 = function (value, ref) {
   var min = ref[0];
   var max = ref[1];
 
   if (Array.isArray(value)) {
-    return value.every(function (val) { return validate$4(val, [min, max]); });
+    return value.every(function (val) { return validate$5(val, [min, max]); });
   }
 
   return Number(min) <= value && Number(max) >= value;
 };
 
-function confirmed (value, other) { return String(value) === String(other); }
+var between = {
+  validate: validate$5
+};
+
+var validate$6 = function (value, other) { return String(value) === String(other); };
+var options$2 = {
+  hasTarget: true
+};
+
+var confirmed = {
+  validate: validate$6,
+  options: options$2
+};
 
 function unwrapExports (x) {
 	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
@@ -53879,9 +54211,13 @@ module.exports = exports['default'];
 
 var isCreditCard = unwrapExports(isCreditCard_1);
 
-function credit_card (value) { return isCreditCard(String(value)); }
+var validate$7 = function (value) { return isCreditCard(String(value)); };
 
-function date_between (value, params) {
+var credit_card = {
+  validate: validate$7
+};
+
+var validate$8 = function (value, params) {
   var assign, assign$1;
 
   var min$$1;
@@ -53916,22 +54252,40 @@ function date_between (value, params) {
   }
 
   return isEqual$1(dateVal, maxDate) || isEqual$1(dateVal, minDate) ||
-        (isBefore(dateVal, maxDate) && isAfter(dateVal, minDate));
-}
+    (isBefore(dateVal, maxDate) && isAfter(dateVal, minDate));
+};
 
-function date_format (value, ref) {
+var options$3 = {
+  isDate: true
+};
+
+var date_between = {
+  validate: validate$8,
+  options: options$3
+};
+
+var validate$9 = function (value, ref) {
   var format = ref[0];
 
   return !!parseDate$1(value, format);
-}
+};
 
-var validate$5 = function (value, ref) {
+var options$4 = {
+  isDate: true
+};
+
+var date_format = {
+  validate: validate$9,
+  options: options$4
+};
+
+var validate$a = function (value, ref) {
   if ( ref === void 0 ) ref = [];
   var decimals = ref[0]; if ( decimals === void 0 ) decimals = '*';
   var separator = ref[1]; if ( separator === void 0 ) separator = '.';
 
   if (Array.isArray(value)) {
-    return value.every(function (val) { return validate$5(val, [decimals, separator]); });
+    return value.every(function (val) { return validate$a(val, [decimals, separator]); });
   }
 
   if (value === null || value === undefined || value === '') {
@@ -53956,15 +54310,23 @@ var validate$5 = function (value, ref) {
     return parsedValue === parsedValue;
 };
 
-var validate$6 = function (value, ref) {
+var decimal = {
+  validate: validate$a
+};
+
+var validate$b = function (value, ref) {
   var length = ref[0];
 
   if (Array.isArray(value)) {
-    return value.every(function (val) { return validate$6(val, [length]); });
+    return value.every(function (val) { return validate$b(val, [length]); });
   }
   var strVal = String(value);
 
   return /^[0-9]*$/.test(strVal) && strVal.length === Number(length);
+};
+
+var digits = {
+  validate: validate$b
 };
 
 var validateImage = function (file, width, height) {
@@ -53980,7 +54342,7 @@ var validateImage = function (file, width, height) {
   });
 };
 
-function dimensions (files, ref) {
+var validate$c = function (files, ref) {
   var width = ref[0];
   var height = ref[1];
 
@@ -53995,7 +54357,11 @@ function dimensions (files, ref) {
   }
 
   return Promise.all(list.map(function (file) { return validateImage(file, width, height); }));
-}
+};
+
+var dimensions = {
+  validate: validate$c
+};
 
 var merge_1 = createCommonjsModule(function (module, exports) {
 
@@ -54243,7 +54609,7 @@ module.exports = exports['default'];
 
 var isEmail = unwrapExports(isEmail_1);
 
-var validate$7 = function (value, ref) {
+var validate$d = function (value, ref) {
   if ( ref === void 0 ) ref = [];
   var multiple = ref[0]; if ( multiple === void 0 ) multiple = false;
 
@@ -54258,9 +54624,13 @@ var validate$7 = function (value, ref) {
   return isEmail(String(value));
 };
 
-var validate$8 = function (value, options) {
+var email = {
+  validate: validate$d
+};
+
+var validate$e = function (value, options) {
   if (Array.isArray(value)) {
-    return value.every(function (val) { return validate$8(val, options); });
+    return value.every(function (val) { return validate$e(val, options); });
   }
 
   return toArray(options).some(function (item) {
@@ -54269,29 +54639,48 @@ var validate$8 = function (value, options) {
   });
 };
 
-function excluded () {
+var included = {
+  validate: validate$e
+};
+
+var validate$f = function () {
   var args = [], len = arguments.length;
   while ( len-- ) args[ len ] = arguments[ len ];
 
-  return !validate$8.apply(void 0, args);
-}
+  return !validate$e.apply(void 0, args);
+};
 
-function ext (files, extensions) {
+var excluded = {
+  validate: validate$f
+};
+
+var validate$g = function (files, extensions) {
   var regex = new RegExp((".(" + (extensions.join('|')) + ")$"), 'i');
 
   return files.every(function (file) { return regex.test(file.name); });
-}
+};
 
-function image (files) { return files.every(function (file) { return /\.(jpg|svg|jpeg|png|bmp|gif)$/i.test(file.name); }
-); }
+var ext = {
+  validate: validate$g
+};
 
-function integer (value) {
+var validate$h = function (files) { return files.every(function (file) { return /\.(jpg|svg|jpeg|png|bmp|gif)$/i.test(file.name); }); };
+
+var image = {
+  validate: validate$h
+};
+
+var validate$i = function (value) {
   if (Array.isArray(value)) {
     return value.every(function (val) { return /^-?[0-9]+$/.test(String(val)); });
   }
 
   return /^-?[0-9]+$/.test(String(value));
-}
+};
+
+var integer = {
+  validate: validate$i
+};
 
 var isIP_1 = createCommonjsModule(function (module, exports) {
 
@@ -54375,7 +54764,7 @@ module.exports = exports['default'];
 
 var isIP = unwrapExports(isIP_1);
 
-function ip (value, ref) {
+var validate$j = function (value, ref) {
   if ( ref === void 0 ) ref = [];
   var version = ref[0]; if ( version === void 0 ) version = 4;
 
@@ -54388,21 +54777,33 @@ function ip (value, ref) {
   }
 
   return isIP(value, version);
-}
+};
 
-function is (value, ref) {
+var ip = {
+  validate: validate$j
+};
+
+var validate$k = function (value, ref) {
   if ( ref === void 0 ) ref = [];
   var other = ref[0];
 
   return value === other;
-}
+};
 
-function is_not (value, ref) {
+var is = {
+  validate: validate$k
+};
+
+var validate$l = function (value, ref) {
   if ( ref === void 0 ) ref = [];
   var other = ref[0];
 
   return value !== other;
-}
+};
+
+var is_not = {
+  validate: validate$l
+};
 
 /**
  * @param {Array|String} value
@@ -54420,7 +54821,7 @@ var compare = function (value, length, max) {
   return value.length >= length && value.length <= max;
 };
 
-function length (value, ref) {
+var validate$m = function (value, ref) {
   var length = ref[0];
   var max = ref[1]; if ( max === void 0 ) max = undefined;
 
@@ -54438,9 +54839,13 @@ function length (value, ref) {
   }
 
   return compare(value, length, max);
-}
+};
 
-function max$1 (value, ref) {
+var length = {
+  validate: validate$m
+};
+
+var validate$n = function (value, ref) {
   var length = ref[0];
 
   if (value === undefined || value === null) {
@@ -54448,9 +54853,13 @@ function max$1 (value, ref) {
   }
 
   return String(value).length <= length;
-}
+};
 
-function max_value (value, ref) {
+var max$1 = {
+  validate: validate$n
+};
+
+var validate$o = function (value, ref) {
   var max = ref[0];
 
   if (Array.isArray(value) || value === null || value === undefined || value === '') {
@@ -54458,24 +54867,36 @@ function max_value (value, ref) {
   }
 
   return Number(value) <= max;
-}
+};
 
-function mimes (files, mimes) {
+var max_value = {
+  validate: validate$o
+};
+
+var validate$p = function (files, mimes) {
   var regex = new RegExp(((mimes.join('|').replace('*', '.+')) + "$"), 'i');
 
   return files.every(function (file) { return regex.test(file.type); });
-}
+};
 
-function min$1 (value, ref) {
+var mimes = {
+  validate: validate$p
+};
+
+var validate$q = function (value, ref) {
   var length = ref[0];
 
   if (value === undefined || value === null) {
     return false;
   }
   return String(value).length >= length;
-}
+};
 
-function min_value (value, ref) {
+var min$1 = {
+  validate: validate$q
+};
+
+var validate$r = function (value, ref) {
   var min = ref[0];
 
   if (Array.isArray(value) || value === null || value === undefined || value === '') {
@@ -54483,17 +54904,25 @@ function min_value (value, ref) {
   }
 
   return Number(value) >= min;
-}
+};
 
-function numeric (value) {
+var min_value = {
+  validate: validate$r
+};
+
+var validate$s = function (value) {
   if (Array.isArray(value)) {
     return value.every(function (val) { return /^[0-9]+$/.test(String(val)); });
   }
 
   return /^[0-9]+$/.test(String(value));
-}
+};
 
-function regex (value, ref) {
+var numeric = {
+  validate: validate$s
+};
+
+var validate$t = function (value, ref) {
   var regex = ref[0];
   var flags = ref.slice(1);
 
@@ -54502,14 +54931,18 @@ function regex (value, ref) {
   }
 
   return new RegExp(regex, flags).test(String(value));
-}
+};
 
-function required (value, ref) {
+var regex = {
+  validate: validate$t
+};
+
+var validate$u = function (value, ref) {
   if ( ref === void 0 ) ref = [];
   var invalidateFalse = ref[0]; if ( invalidateFalse === void 0 ) invalidateFalse = false;
 
   if (Array.isArray(value)) {
-    return !! value.length;
+    return !!value.length;
   }
 
   // incase a field considers `false` as an empty value like checkboxes.
@@ -54521,10 +54954,14 @@ function required (value, ref) {
     return false;
   }
 
-  return !! String(value).trim().length;
-}
+  return !!String(value).trim().length;
+};
 
-function size (files, ref) {
+var required = {
+  validate: validate$u
+};
+
+var validate$v = function (files, ref) {
   var size = ref[0];
 
   if (isNaN(size)) {
@@ -54539,7 +54976,11 @@ function size (files, ref) {
   }
 
   return true;
-}
+};
+
+var size = {
+  validate: validate$v
+};
 
 var isURL_1 = createCommonjsModule(function (module, exports) {
 
@@ -54692,7 +55133,7 @@ module.exports = exports['default'];
 
 var isURL = unwrapExports(isURL_1);
 
-function url (value, ref) {
+var validate$w = function (value, ref) {
   if ( ref === void 0 ) ref = [];
   var requireProtocol = ref[0]; if ( requireProtocol === void 0 ) requireProtocol = false;
 
@@ -54706,29 +55147,33 @@ function url (value, ref) {
   }
 
   return isURL(value, options);
-}
+};
+
+var url = {
+  validate: validate$w
+};
 
 /* eslint-disable camelcase */
 
 var Rules = /*#__PURE__*/Object.freeze({
   after: after,
-  alpha_dash: validate$1,
-  alpha_num: validate$2,
-  alpha_spaces: validate$3,
-  alpha: validate,
+  alpha_dash: alpha_dash,
+  alpha_num: alpha_num,
+  alpha_spaces: alpha_spaces,
+  alpha: alpha$1,
   before: before,
-  between: validate$4,
+  between: between,
   confirmed: confirmed,
   credit_card: credit_card,
   date_between: date_between,
   date_format: date_format,
-  decimal: validate$5,
-  digits: validate$6,
+  decimal: decimal,
+  digits: digits,
   dimensions: dimensions,
-  email: validate$7,
+  email: email,
   ext: ext,
   image: image,
-  included: validate$8,
+  included: included,
   integer: integer,
   length: length,
   ip: ip,
@@ -54752,7 +55197,7 @@ var Rules = /*#__PURE__*/Object.freeze({
 var normalize = function (fields) {
   if (Array.isArray(fields)) {
     return fields.reduce(function (prev, curr) {
-      if (~curr.indexOf('.')) {
+      if (includes(curr, '.')) {
         prev[curr.split('.')[1]] = curr;
       } else {
         prev[curr] = curr;
@@ -54884,13 +55329,13 @@ var ErrorComponent = {
   }
 };
 
-var version = '2.1.0-beta.1';
+var version = '2.1.0-beta.7';
 
 var rulesPlugin = function (ref) {
   var Validator$$1 = ref.Validator;
 
   Object.keys(Rules).forEach(function (rule) {
-    Validator$$1.extend(rule, Rules[rule]);
+    Validator$$1.extend(rule, Rules[rule].validate, Rules[rule].options);
   });
 
   // Merge the english messages.
@@ -54925,7 +55370,7 @@ function injectStyle (ssrContext) {
   if (disposed) return
   __webpack_require__(44)
 }
-var normalizeComponent = __webpack_require__(5)
+var normalizeComponent = __webpack_require__(3)
 /* script */
 var __vue_script__ = __webpack_require__(47)
 /* template */
@@ -54978,7 +55423,7 @@ var content = __webpack_require__(45);
 if(typeof content === 'string') content = [[module.i, content, '']];
 if(content.locals) module.exports = content.locals;
 // add the styles to the DOM
-var update = __webpack_require__(4)("30e05606", content, false, {});
+var update = __webpack_require__(14)("30e05606", content, false, {});
 // Hot Module Replacement
 if(false) {
  // When the styles change, update the <style> tags
@@ -54997,12 +55442,12 @@ if(false) {
 /* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
-exports = module.exports = __webpack_require__(3)(false);
+exports = module.exports = __webpack_require__(13)(false);
 // imports
 
 
 // module
-exports.push([module.i, "\n.mostrar {\n    display: list-item !important;\n    opacity: 1 !important;\n    position: absolute !important;\n    background-color: #3c29297a !important;\n}\n.modal-content{\n    width: 100% !important;\n    position: absolute !important;\n}\n.div-error{\n    display:flex;\n    justify-content: center;\n}\n.text-error{\n    color: red !important;\n    font-weight:bold;\n}\n\n", ""]);
+exports.push([module.i, "\n.mostrar {\n}\n.modal-content{\n    width: 100% !important;\n    position: absolute !important;\n}\n.div-error{\n    display:flex;\n    justify-content: center;\n}\n.text-error{\n    color: red !important;\n    font-weight:bold;\n}\n\n", ""]);
 
 // exports
 
@@ -55213,16 +55658,28 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
     //Declarar variables
     data: function data() {
         return {
+
             id: 0,
             nombre: '',
             cantidad: '',
             descripcion: '',
+            imagen: '',
             arrayHerramienta: [],
             modal: 0,
             tituloModal: '',
@@ -55269,6 +55726,19 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
     },
     methods: {
+        onImageChange: function onImageChange(e) {
+            var files = e.target.files || e.dataTransfer.files;
+            if (!files.length) return;
+            this.createImage(files[0]);
+        },
+        createImage: function createImage(file) {
+            var reader = new FileReader();
+            var vm = this;
+            reader.onload = function (e) {
+                vm.imagen = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        },
         listarHerramientas: function listarHerramientas(page, buscar, criterio) {
 
             var me = this;
@@ -55295,7 +55765,8 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             axios.post('/herramienta/registrar', {
                 'nombre': this.nombre,
                 'cantidad': this.cantidad,
-                'descripcion': this.descripcion
+                'descripcion': this.descripcion,
+                'imagen': this.imagen
 
             }).then(function (response) {
                 me.cerrarModal();
@@ -55590,6 +56061,18 @@ var render = function() {
                         })
                       ]),
                       _vm._v(" "),
+                      _c("div", { staticClass: "form-group" }, [
+                        _c("label", { staticClass: " form-control-label" }, [
+                          _vm._v("Imagen")
+                        ]),
+                        _vm._v(" "),
+                        _c("input", {
+                          staticClass: "form-control",
+                          attrs: { type: "file" },
+                          on: { change: _vm.onImageChange }
+                        })
+                      ]),
+                      _vm._v(" "),
                       _c(
                         "div",
                         {
@@ -55874,6 +56357,20 @@ var render = function() {
                                   }
                                 }),
                                 _vm._v(" "),
+                                herramienta.imagen
+                                  ? _c("td", { staticClass: "col-md-3" }, [
+                                      _c("img", {
+                                        staticClass:
+                                          "rounded-circle mx-auto d-block",
+                                        attrs: {
+                                          src: herramienta.imagen,
+                                          height: "70",
+                                          width: "90"
+                                        }
+                                      })
+                                    ])
+                                  : _vm._e(),
+                                _vm._v(" "),
                                 _c(
                                   "td",
                                   [
@@ -56067,6 +56564,8 @@ var staticRenderFns = [
         _vm._v(" "),
         _c("th", [_vm._v("Descripcion")]),
         _vm._v(" "),
+        _c("th", [_vm._v("Imagen")]),
+        _vm._v(" "),
         _c("th", [_vm._v("Acciones")]),
         _vm._v(" "),
         _c("th", [_vm._v("Estado")])
@@ -56104,20 +56603,15 @@ if (false) {
 /* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var disposed = false
-function injectStyle (ssrContext) {
-  if (disposed) return
-  __webpack_require__(50)
-}
-var normalizeComponent = __webpack_require__(5)
+var normalizeComponent = __webpack_require__(3)
 /* script */
-var __vue_script__ = __webpack_require__(52)
+var __vue_script__ = null
 /* template */
-var __vue_template__ = __webpack_require__(53)
+var __vue_template__ = null
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
-var __vue_styles__ = injectStyle
+var __vue_styles__ = null
 /* scopeId */
 var __vue_scopeId__ = null
 /* moduleIdentifier (server only) */
@@ -56132,22 +56626,6 @@ var Component = normalizeComponent(
 )
 Component.options.__file = "resources\\assets\\js\\components\\Equipos.vue"
 
-/* hot reload */
-if (false) {(function () {
-  var hotAPI = require("vue-hot-reload-api")
-  hotAPI.install(require("vue"), false)
-  if (!hotAPI.compatible) return
-  module.hot.accept()
-  if (!module.hot.data) {
-    hotAPI.createRecord("data-v-1b807226", Component.options)
-  } else {
-    hotAPI.reload("data-v-1b807226", Component.options)
-  }
-  module.hot.dispose(function (data) {
-    disposed = true
-  })
-})()}
-
 module.exports = Component.exports
 
 
@@ -56155,1086 +56633,16 @@ module.exports = Component.exports
 /* 50 */
 /***/ (function(module, exports, __webpack_require__) {
 
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(51);
-if(typeof content === 'string') content = [[module.i, content, '']];
-if(content.locals) module.exports = content.locals;
-// add the styles to the DOM
-var update = __webpack_require__(4)("2a10681f", content, false, {});
-// Hot Module Replacement
-if(false) {
- // When the styles change, update the <style> tags
- if(!content.locals) {
-   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-1b807226\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./Equipos.vue", function() {
-     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-1b807226\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./Equipos.vue");
-     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-     update(newContent);
-   });
- }
- // When the module is disposed, remove the <style> tags
- module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 51 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(3)(false);
-// imports
-
-
-// module
-exports.push([module.i, "\n.mostrar {\n    display: list-item !important;\n    opacity: 1 !important;\n    position: absolute !important;\n    background-color: #3c29297a !important;\n}\n.modal-content{\n    width: 100% !important;\n    position: absolute !important;\n}\n.div-error{\n    display:flex;\n    justify-content: center;\n}\n.text-error{\n    color: red !important;\n    font-weight:bold;\n}\n\n", ""]);
-
-// exports
-
-
-/***/ }),
-/* 52 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-
-/* harmony default export */ __webpack_exports__["default"] = ({
-    //Declarar variables
-    data: function data() {
-        return {
-            id: 0,
-            nombre: '',
-            cantidad: '',
-            descripcion: '',
-            arrayHerramienta: [],
-            modal: 0,
-            tituloModal: '',
-            tipoAccion: 0,
-            errorHerramienta: 0,
-            errorMostrarMsjHerramienta: [],
-            pagination: {
-                "total": 0,
-                "per_page": 0,
-                "current_page": 0,
-                "last_page": 0,
-                "from": 0,
-                "to": 0
-            },
-            offset: 10,
-            criterio: 'nombre',
-            buscar: ''
-        };
-    },
-
-    computed: {
-        isActivated: function isActivated() {
-            return this.pagination.current_page;
-        },
-        pageNumber: function pageNumber() {
-            if (!this.pagination.to) {
-                return [];
-            }
-            var from = this.pagination.current_page - this.offset;
-            if (from < 1) {
-                from = 1;
-            }
-            var to = from + this.offset * 2;
-            if (to >= this.pagination.last_page) {
-                to = this.pagination.last_page;
-            }
-            var pagesArray = [];
-            while (from <= to) {
-                pagesArray.push(from);
-                from++;
-            }
-            return pagesArray;
-        }
-
-    },
-    methods: {
-        listarHerramientas: function listarHerramientas(page, buscar, criterio) {
-
-            var me = this;
-            var url = '/herramienta?page=' + page + '&buscar=' + buscar + '&criterio' + criterio;
-            axios.get(url).then(function (response) {
-                var respuesta = response.data;
-                me.arrayHerramienta = respuesta.herramientas.data;
-                me.pagination = respuesta.pagination;
-            }).catch(function (error) {
-                console.log(error);
-            });
-        },
-        cambiarPagina: function cambiarPagina(page, buscar, criterio) {
-            var me = this;
-            me.pagination.current_page = page;
-            me.listarHerramientas(page, buscar, criterio);
-        },
-        RegistrarHerramientas: function RegistrarHerramientas() {
-            if (this.ValidarHerramientas() == 0) {
-                return;
-            }
-
-            var me = this;
-            axios.post('/herramienta/registrar', {
-                'nombre': this.nombre,
-                'cantidad': this.cantidad,
-                'descripcion': this.descripcion
-
-            }).then(function (response) {
-                me.cerrarModal();
-                me.listarHerramientas(1, '', 'nombre');
-                console.log(response);
-                swal("Exito", "Se inserto correctamente!", "success");
-            }).catch(function (error) {
-                console.log("es un error de post");
-            });
-        },
-        ActualizarCategoria: function ActualizarCategoria() {
-
-            var me = this;
-            axios.put('/herramienta/actualizar', {
-                'nombre': this.nombre,
-                'cantidad': this.cantidad,
-                'descripcion': this.descripcion,
-                'id_herramienta': this.id
-            }).then(function (response) {
-                me.cerrarModal();
-                me.listarHerramientas(1, '', 'nombre');
-                console.log(response);
-                swal("Exito", "Se Actualizo correctamente!", "success");
-            }).catch(function (error) {
-                console.log(error);
-            });
-        },
-        eliminarHerramienta: function eliminarHerramienta(id_herramienta) {
-            var _this = this;
-
-            swal({
-                title: 'Estas seguro?',
-                text: "No podras recuperar la informacin!",
-                type: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Si, deseo eliminarlo!'
-            }).then(function (result) {
-                if (result.value) {
-                    var me = _this;
-
-                    axios.delete('/herramienta/' + id_herramienta).then(function (response) {
-                        id: id_herramienta;
-                        console.log(response);
-                    }).then(function (response) {
-                        me.listarHerramientas(1, '', 'nombre');
-                        swal('Eliminado!', 'Tu fila a sido eliminada.', 'success');
-                        console.log(response);
-                    }).catch(function (error) {
-                        console.log("es un error de post");
-                    });
-                }
-            });
-        },
-        desactivarHerramienta: function desactivarHerramienta(id_herramienta) {
-            var _this2 = this;
-
-            swal({
-                title: 'Are you sure?',
-                text: "You won't be able to revert this!",
-                type: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, delete it!'
-            }).then(function (result) {
-                if (result.value) {
-                    var me = _this2;
-                    axios.delete('/herramienta/eliminar', {
-                        'id': id_herramienta
-                    }).then(function (response) {
-                        me.listarHerramientas();
-                        swal('Deleted!', 'Your file has been deleted.', 'success');
-                    }).catch(function (error) {
-                        console.log("es un error de post");
-                    });
-                }
-            });
-        },
-        ValidarHerramientas: function ValidarHerramientas() {
-            this.errorHerramienta = 0;
-            this.errorMostrarMsjHerramienta = [];
-
-            if (!this.nombre) this.errorMostrarMsjHerramienta.push("El nombre no puede estar vacio");
-
-            if (!this.errorMostrarMsjHerramienta.length) this.errorHerramienta = 1;
-            return this.errorHerramienta;
-        },
-        cerrarModal: function cerrarModal() {
-            this.modal = 0;
-            this.tituloModal = '';
-            this.nombre = '';
-            this.cantidad = '';
-            this.descripcion = '';
-        },
-        AbrirModal: function AbrirModal(modelo, accion) {
-            var data = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
-
-            switch (modelo) {
-                case "herramienta":
-                    {
-
-                        switch (accion) {
-                            case "registrar":
-                                {
-                                    this.modal = 1;
-                                    this.tituloModal = 'Registrar Herramienta';
-                                    this.nombre = '';
-                                    this.cantidad = '';
-                                    this.descripcion = '';
-                                    this.tipoAccion = 1;
-                                    break;
-                                }
-
-                            case 'actualizar':
-                                {
-                                    this.modal = 1;
-                                    this.tituloModal = 'Actualizar categoria';
-                                    this.tipoAccion = 2;
-                                    this.nombre = data['nombre'];
-                                    this.cantidad = data['cantidad'];
-                                    this.descripcion = data['descripcion'];
-                                    this.id = data['id_herramienta'];
-                                    break;
-                                }
-                        }
-                    }
-            }
-        }
-    },
-    mounted: function mounted() {
-        this.listarHerramientas(1, this.buscar, this.criterio);
-    }
-});
-
-/***/ }),
-/* 53 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var render = function() {
-  var _vm = this
-  var _h = _vm.$createElement
-  var _c = _vm._self._c || _h
-  return _c("div", { staticClass: "main" }, [
-    _c("div", { staticClass: "main-content" }, [
-      _c("div", { staticClass: "container-fluid" }, [
-        _c("div", { staticClass: "panel panel-headline" }, [
-          _vm._m(0),
-          _vm._v(" "),
-          _c(
-            "div",
-            {
-              staticClass: "modal fade",
-              class: { mostrar: _vm.modal },
-              attrs: {
-                tabindex: "-1",
-                role: "dialog",
-                "aria-labelledby": "mediumModalLabel",
-                "aria-hidden": "true"
-              }
-            },
-            [
-              _c(
-                "div",
-                {
-                  staticClass: "modal-dialog modal-lg",
-                  attrs: { role: "document" }
-                },
-                [
-                  _c("div", { staticClass: "modal-content" }, [
-                    _c("div", { staticClass: "modal-header" }, [
-                      _c("h5", {
-                        staticClass: "modal-title",
-                        attrs: { id: "mediumModalLabel" },
-                        domProps: { textContent: _vm._s(_vm.tituloModal) }
-                      }),
-                      _vm._v(" "),
-                      _c(
-                        "button",
-                        {
-                          staticClass: "close",
-                          attrs: { type: "button", "aria-label": "Close" },
-                          on: {
-                            click: function($event) {
-                              _vm.cerrarModal()
-                            }
-                          }
-                        },
-                        [
-                          _c("span", { attrs: { "aria-hidden": "true" } }, [
-                            _vm._v("×")
-                          ])
-                        ]
-                      )
-                    ]),
-                    _vm._v(" "),
-                    _c("div", { staticClass: "modal-body" }, [
-                      _c("div", { staticClass: "form-group" }, [
-                        _c("label", { staticClass: " form-control-label" }, [
-                          _vm._v("Nombre")
-                        ]),
-                        _vm._v(" "),
-                        _c("input", {
-                          directives: [
-                            {
-                              name: "model",
-                              rawName: "v-model",
-                              value: _vm.nombre,
-                              expression: "nombre"
-                            }
-                          ],
-                          staticClass: "form-control",
-                          attrs: {
-                            type: "text",
-                            placeholder: "Inserta Nombre de Herramienta"
-                          },
-                          domProps: { value: _vm.nombre },
-                          on: {
-                            input: function($event) {
-                              if ($event.target.composing) {
-                                return
-                              }
-                              _vm.nombre = $event.target.value
-                            }
-                          }
-                        })
-                      ]),
-                      _vm._v(" "),
-                      _c("div", { staticClass: "form-group" }, [
-                        _c("label", { staticClass: " form-control-label" }, [
-                          _vm._v("Cantidad")
-                        ]),
-                        _vm._v(" "),
-                        _c("input", {
-                          directives: [
-                            {
-                              name: "model",
-                              rawName: "v-model",
-                              value: _vm.cantidad,
-                              expression: "cantidad"
-                            }
-                          ],
-                          staticClass: "form-control",
-                          attrs: { type: "number", placeholder: "Cantidad" },
-                          domProps: { value: _vm.cantidad },
-                          on: {
-                            input: function($event) {
-                              if ($event.target.composing) {
-                                return
-                              }
-                              _vm.cantidad = $event.target.value
-                            }
-                          }
-                        })
-                      ]),
-                      _vm._v(" "),
-                      _c("div", { staticClass: "form-group" }, [
-                        _c("label", { staticClass: " form-control-label" }, [
-                          _vm._v("Descripcion")
-                        ]),
-                        _vm._v(" "),
-                        _c("input", {
-                          directives: [
-                            {
-                              name: "model",
-                              rawName: "v-model",
-                              value: _vm.descripcion,
-                              expression: "descripcion"
-                            }
-                          ],
-                          staticClass: "form-control",
-                          attrs: { type: "text", placeholder: "Descripcion" },
-                          domProps: { value: _vm.descripcion },
-                          on: {
-                            input: function($event) {
-                              if ($event.target.composing) {
-                                return
-                              }
-                              _vm.descripcion = $event.target.value
-                            }
-                          }
-                        })
-                      ]),
-                      _vm._v(" "),
-                      _c(
-                        "div",
-                        {
-                          directives: [
-                            {
-                              name: "show",
-                              rawName: "v-show",
-                              value: _vm.errorHerramienta,
-                              expression: "errorHerramienta"
-                            }
-                          ],
-                          staticClass: "form-group row  div-error"
-                        },
-                        [
-                          _c(
-                            "div",
-                            { staticClass: "text-center" },
-                            _vm._l(_vm.errorMostrarMsjHerramienta, function(
-                              error
-                            ) {
-                              return _c("div", {
-                                key: error,
-                                domProps: { textContent: _vm._s(error) }
-                              })
-                            })
-                          )
-                        ]
-                      )
-                    ]),
-                    _vm._v(" "),
-                    _c("div", { staticClass: "modal-footer" }, [
-                      _c(
-                        "button",
-                        {
-                          staticClass: "btn btn-secondary",
-                          attrs: { type: "button" },
-                          on: {
-                            click: function($event) {
-                              _vm.cerrarModal()
-                            }
-                          }
-                        },
-                        [_vm._v("Cancelar")]
-                      ),
-                      _vm._v(" "),
-                      _vm.tipoAccion == 1
-                        ? _c(
-                            "button",
-                            {
-                              staticClass: "btn btn-primary",
-                              attrs: { type: "button" },
-                              on: {
-                                click: function($event) {
-                                  _vm.RegistrarHerramientas()
-                                }
-                              }
-                            },
-                            [_vm._v("Aceptar")]
-                          )
-                        : _vm._e(),
-                      _vm._v(" "),
-                      _vm.tipoAccion == 2
-                        ? _c(
-                            "button",
-                            {
-                              staticClass: "btn btn-primary",
-                              attrs: { type: "button" },
-                              on: {
-                                click: function($event) {
-                                  _vm.ActualizarCategoria()
-                                }
-                              }
-                            },
-                            [_vm._v("Actualizar")]
-                          )
-                        : _vm._e()
-                    ])
-                  ])
-                ]
-              )
-            ]
-          ),
-          _vm._v(" "),
-          _c("div", { staticClass: "animated fadeIn" }, [
-            _c("div", { staticClass: "row" }, [
-              _c("div", { staticClass: "col-md-12" }, [
-                _c("div", { staticClass: "card" }, [
-                  _vm._m(1),
-                  _vm._v(" "),
-                  _c("div", { staticClass: "card-body" }, [
-                    _c(
-                      "button",
-                      {
-                        staticClass: "btn btn-primary",
-                        attrs: { type: "button" },
-                        on: {
-                          click: function($event) {
-                            _vm.AbrirModal("herramienta", "registrar")
-                          }
-                        }
-                      },
-                      [
-                        _c("i", { staticClass: "fa fa-plus" }),
-                        _vm._v(
-                          "\n                                        Agregar\n                                    "
-                        )
-                      ]
-                    ),
-                    _vm._v(" "),
-                    _c("div", { staticClass: "col-lg-6" }, [
-                      _c("div", { staticClass: "row form-group" }, [
-                        _c("div", { staticClass: "col col-md-12" }, [
-                          _c("div", { staticClass: "input-group" }, [
-                            _c("div", { staticClass: "input-group-btn" }, [
-                              _c(
-                                "select",
-                                {
-                                  directives: [
-                                    {
-                                      name: "model",
-                                      rawName: "v-model",
-                                      value: _vm.criterio,
-                                      expression: "criterio"
-                                    }
-                                  ],
-                                  staticClass:
-                                    "dropdown-toggle btn btn-primary",
-                                  on: {
-                                    change: function($event) {
-                                      var $$selectedVal = Array.prototype.filter
-                                        .call($event.target.options, function(
-                                          o
-                                        ) {
-                                          return o.selected
-                                        })
-                                        .map(function(o) {
-                                          var val =
-                                            "_value" in o ? o._value : o.value
-                                          return val
-                                        })
-                                      _vm.criterio = $event.target.multiple
-                                        ? $$selectedVal
-                                        : $$selectedVal[0]
-                                    }
-                                  }
-                                },
-                                [
-                                  _c(
-                                    "option",
-                                    {
-                                      staticClass: "form-group",
-                                      attrs: { value: "nombre" }
-                                    },
-                                    [_vm._v("Nombre")]
-                                  ),
-                                  _vm._v(" "),
-                                  _c(
-                                    "option",
-                                    {
-                                      staticClass: "form-group",
-                                      attrs: { value: "descripcion" }
-                                    },
-                                    [_vm._v("Descripcion")]
-                                  )
-                                ]
-                              ),
-                              _vm._v(" "),
-                              _c(
-                                "button",
-                                {
-                                  staticClass: "btn btn-primary",
-                                  on: {
-                                    click: function($event) {
-                                      _vm.listarHerramientas(
-                                        1,
-                                        _vm.buscar,
-                                        _vm.criterio
-                                      )
-                                    }
-                                  }
-                                },
-                                [
-                                  _c("i", { staticClass: "fa fa-search" }),
-                                  _vm._v(
-                                    " Search\n                                                        "
-                                  )
-                                ]
-                              )
-                            ]),
-                            _vm._v(" "),
-                            _c("input", {
-                              directives: [
-                                {
-                                  name: "model",
-                                  rawName: "v-model",
-                                  value: _vm.buscar,
-                                  expression: "buscar"
-                                }
-                              ],
-                              staticClass: "form-control",
-                              attrs: {
-                                type: "text",
-                                placeholder: "Nombre a buscar"
-                              },
-                              domProps: { value: _vm.buscar },
-                              on: {
-                                keyup: function($event) {
-                                  if (
-                                    !("button" in $event) &&
-                                    _vm._k(
-                                      $event.keyCode,
-                                      "enter",
-                                      13,
-                                      $event.key,
-                                      "Enter"
-                                    )
-                                  ) {
-                                    return null
-                                  }
-                                  _vm.listarHerramientas(
-                                    1,
-                                    _vm.buscar,
-                                    _vm.criterio
-                                  )
-                                },
-                                input: function($event) {
-                                  if ($event.target.composing) {
-                                    return
-                                  }
-                                  _vm.buscar = $event.target.value
-                                }
-                              }
-                            })
-                          ])
-                        ])
-                      ])
-                    ]),
-                    _vm._v(" "),
-                    _c(
-                      "table",
-                      {
-                        staticClass: "table table-striped table-bordered",
-                        attrs: { id: "bootstrap-data-table" }
-                      },
-                      [
-                        _vm._m(2),
-                        _vm._v(" "),
-                        _c(
-                          "tbody",
-                          _vm._l(_vm.arrayHerramienta, function(
-                            herramienta,
-                            index
-                          ) {
-                            return _c(
-                              "tr",
-                              { key: herramienta.id_herramienta },
-                              [
-                                _c("td", {
-                                  domProps: {
-                                    textContent: _vm._s(
-                                      herramienta.id_herramienta
-                                    )
-                                  }
-                                }),
-                                _vm._v(" "),
-                                _c("td", {
-                                  staticClass: "btn btn-link",
-                                  domProps: {
-                                    textContent: _vm._s(herramienta.nombre)
-                                  }
-                                }),
-                                _vm._v(" "),
-                                _c("td", {
-                                  domProps: {
-                                    textContent: _vm._s(herramienta.cantidad)
-                                  }
-                                }),
-                                _vm._v(" "),
-                                _c("td", {
-                                  domProps: {
-                                    textContent: _vm._s(herramienta.descripcion)
-                                  }
-                                }),
-                                _vm._v(" "),
-                                _c(
-                                  "td",
-                                  [
-                                    _c(
-                                      "button",
-                                      {
-                                        staticClass: "btn btn-warning",
-                                        on: {
-                                          click: function($event) {
-                                            _vm.AbrirModal(
-                                              "herramienta",
-                                              "actualizar",
-                                              herramienta
-                                            )
-                                          }
-                                        }
-                                      },
-                                      [
-                                        _c("i", {
-                                          staticClass: "fa  fa-pencil"
-                                        })
-                                      ]
-                                    ),
-                                    _vm._v(" "),
-                                    herramienta.id_herramienta
-                                      ? [
-                                          _c(
-                                            "button",
-                                            {
-                                              staticClass: "btn btn-danger",
-                                              attrs: { type: "button" },
-                                              on: {
-                                                click: function($event) {
-                                                  _vm.eliminarHerramienta(
-                                                    herramienta.id_herramienta,
-                                                    index
-                                                  )
-                                                }
-                                              }
-                                            },
-                                            [
-                                              _c("i", {
-                                                staticClass: "fa  fa-trash-o"
-                                              })
-                                            ]
-                                          )
-                                        ]
-                                      : _vm._e()
-                                  ],
-                                  2
-                                ),
-                                _vm._v(" "),
-                                _c("td", [_vm._v("Altas y bajas")])
-                              ]
-                            )
-                          })
-                        )
-                      ]
-                    ),
-                    _vm._v(" "),
-                    _c("nav", [
-                      _c(
-                        "ul",
-                        { staticClass: "pagination" },
-                        [
-                          _vm.pagination.current_page > 1
-                            ? _c("li", { staticClass: "page-item" }, [
-                                _c(
-                                  "a",
-                                  {
-                                    staticClass: "page-link",
-                                    attrs: { href: "#" },
-                                    on: {
-                                      click: function($event) {
-                                        $event.preventDefault()
-                                        _vm.cambiarPagina(
-                                          _vm.pagination.current_page - 1,
-                                          _vm.buscar,
-                                          _vm.criterio
-                                        )
-                                      }
-                                    }
-                                  },
-                                  [_vm._v("anterior")]
-                                )
-                              ])
-                            : _vm._e(),
-                          _vm._v(" "),
-                          _vm._l(_vm.pageNumber, function(page) {
-                            return _c(
-                              "li",
-                              {
-                                key: page,
-                                staticClass: "page-item",
-                                class: [page == _vm.isActivated ? "active" : ""]
-                              },
-                              [
-                                _c(
-                                  "a",
-                                  {
-                                    staticClass: "page-link",
-                                    attrs: { href: "#" },
-                                    domProps: { textContent: _vm._s(page) },
-                                    on: {
-                                      click: function($event) {
-                                        $event.preventDefault()
-                                        _vm.cambiarPagina(
-                                          page,
-                                          _vm.buscar,
-                                          _vm.criterio
-                                        )
-                                      }
-                                    }
-                                  },
-                                  [_vm._v("1")]
-                                )
-                              ]
-                            )
-                          }),
-                          _vm._v(" "),
-                          _vm.pagination.current_page < _vm.pagination.last_page
-                            ? _c("li", { staticClass: "page-item" }, [
-                                _c(
-                                  "a",
-                                  {
-                                    staticClass: "page-link",
-                                    attrs: { href: "#" },
-                                    on: {
-                                      click: function($event) {
-                                        $event.preventDefault()
-                                        _vm.cambiarPagina(
-                                          _vm.pagination.current_page + 1,
-                                          _vm.buscar,
-                                          _vm.criterio
-                                        )
-                                      }
-                                    }
-                                  },
-                                  [_vm._v("siguiente")]
-                                )
-                              ])
-                            : _vm._e()
-                        ],
-                        2
-                      )
-                    ])
-                  ])
-                ])
-              ])
-            ])
-          ])
-        ])
-      ])
-    ])
-  ])
-}
-var staticRenderFns = [
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "panel-heading" }, [
-      _c("h3", { staticClass: "pb-2 display-4" }, [
-        _vm._v("Registro de Equipos")
-      ]),
-      _vm._v(" "),
-      _c("p", { staticClass: "panel-subtitle" }, [
-        _vm._v("Period: Oct 14, 2018 - Oct 21, 2018")
-      ])
-    ])
-  },
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "card-header" }, [
-      _c("strong", { staticClass: "card-title" }, [_vm._v("Data Table")])
-    ])
-  },
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("thead", [
-      _c("tr", [
-        _c("th", [_vm._v("ID")]),
-        _vm._v(" "),
-        _c("th", [_vm._v("Nombre")]),
-        _vm._v(" "),
-        _c("th", [_vm._v("Cantidad")]),
-        _vm._v(" "),
-        _c("th", [_vm._v("Descripcion")]),
-        _vm._v(" "),
-        _c("th", [_vm._v("Acciones")]),
-        _vm._v(" "),
-        _c("th", [_vm._v("Estado")])
-      ])
-    ])
-  }
-]
-render._withStripped = true
-module.exports = { render: render, staticRenderFns: staticRenderFns }
-if (false) {
-  module.hot.accept()
-  if (module.hot.data) {
-    require("vue-hot-reload-api")      .rerender("data-v-1b807226", module.exports)
-  }
-}
-
-/***/ }),
-/* 54 */
-/***/ (function(module, exports, __webpack_require__) {
-
 var disposed = false
 function injectStyle (ssrContext) {
   if (disposed) return
-  __webpack_require__(55)
+  __webpack_require__(51)
 }
-var normalizeComponent = __webpack_require__(5)
+var normalizeComponent = __webpack_require__(3)
 /* script */
-var __vue_script__ = __webpack_require__(57)
+var __vue_script__ = __webpack_require__(53)
 /* template */
-var __vue_template__ = __webpack_require__(58)
+var __vue_template__ = __webpack_require__(54)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -57273,17 +56681,17 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 55 */
+/* 51 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(56);
+var content = __webpack_require__(52);
 if(typeof content === 'string') content = [[module.i, content, '']];
 if(content.locals) module.exports = content.locals;
 // add the styles to the DOM
-var update = __webpack_require__(4)("49c0e1fa", content, false, {});
+var update = __webpack_require__(14)("49c0e1fa", content, false, {});
 // Hot Module Replacement
 if(false) {
  // When the styles change, update the <style> tags
@@ -57299,10 +56707,10 @@ if(false) {
 }
 
 /***/ }),
-/* 56 */
+/* 52 */
 /***/ (function(module, exports, __webpack_require__) {
 
-exports = module.exports = __webpack_require__(3)(false);
+exports = module.exports = __webpack_require__(13)(false);
 // imports
 
 
@@ -57313,11 +56721,29 @@ exports.push([module.i, "\n.mostrar {\n    display: list-item !important;\n    o
 
 
 /***/ }),
-/* 57 */
+/* 53 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 //
 //
 //
@@ -57511,16 +56937,18 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
     data: function data() {
         return {
             id: 0,
-            nombre: '',
-            correo: '',
-            contrasena: '',
+            name: '',
+            email: '',
+            password: '',
             telefono: '',
+            id_roles: 0,
+            id_usuario: 0,
             arrayUsuario: [],
+            arrayRol: [],
             modal: 0,
             tituloModal: '',
             tipoAccion: 0,
-            errorUsuario: 0,
-            errorMostrarMsjUusario: [],
+
             pagination: {
                 "total": 0,
                 "per_page": 0,
@@ -57530,7 +56958,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 "to": 0
             },
             offset: 10,
-            criterio: 'nombre',
+            criterio: 'name',
             buscar: ''
         };
     },
@@ -57567,8 +56995,18 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             var url = '/usuario?page=' + page + '&buscar=' + buscar + '&criterio' + criterio;
             axios.get(url).then(function (response) {
                 var respuesta = response.data;
-                me.arrayUsuario = respuesta.usuarios.data;
+                me.arrayUsuario = respuesta.users.data;
                 me.pagination = respuesta.pagination;
+            }).catch(function (error) {
+                console.log(error);
+            });
+        },
+        listarRoles: function listarRoles() {
+            var me = this;
+            var url = '/roles/listarRoles';
+            axios.get(url).then(function (response) {
+                var respuesta = response.data;
+                me.arrayRol = respuesta.roles;
             }).catch(function (error) {
                 console.log(error);
             });
@@ -57582,10 +57020,12 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
             var me = this;
             axios.post('/usuario/registrar', {
-                'nombre': this.nombre,
-                'correo': this.correo,
-                'contrasena': this.contrasena,
-                'telefono': this.telefono
+                'name': this.name,
+                'email': this.email,
+                'password': this.password,
+                'telefono': this.telefono,
+                'condicion': this.condicion,
+                'id_roles': this.id_roles
 
             }).then(function (response) {
                 me.cerrarModal();
@@ -57600,11 +57040,12 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
             var me = this;
             axios.put('/usuario/actualizar', {
-                'nombre': this.nombre,
-                'correo': this.correo,
-                'contrasena': this.contrasena,
+                'name': this.name,
+                'email': this.email,
+                'password': this.password,
                 'telefono': this.telefono,
-                'id_usuario': this.id
+                'id_usuario': this.id,
+                'id_roles': this.id_roles
             }).then(function (response) {
                 me.cerrarModal();
                 me.listarUsuario(1, '', 'nombre');
@@ -57642,12 +57083,26 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 }
             });
         },
-        desactivarHerramienta: function desactivarHerramienta(id_herramienta) {
+        desactivarUsuario: function desactivarUsuario(id_usuario) {
+
+            var me = this;
+            axios.put('/usuario/desactivar', {
+                'id': id_usuario
+            }).then(function (response) {
+
+                me.listarUsuario(1, '', 'nombre');
+                console.log(response);
+                swal("Exito", "Se Actualizo correctamente!", "success");
+            }).catch(function (error) {
+                console.log(error);
+            });
+        },
+        activarUsuario: function activarUsuario(id_usuario) {
             var _this2 = this;
 
             swal({
-                title: 'Are you sure?',
-                text: "You won't be able to revert this!",
+                title: 'Estas seguro de desactivar al usuario?',
+                text: "Podras activarlo despues",
                 type: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
@@ -57656,11 +57111,11 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             }).then(function (result) {
                 if (result.value) {
                     var me = _this2;
-                    axios.delete('/herramienta/eliminar', {
-                        'id': id_herramienta
+                    axios.put('/usuario/activar', {
+                        'id': id_usuario
                     }).then(function (response) {
-                        me.listarHerramientas();
-                        swal('Deleted!', 'Your file has been deleted.', 'success');
+                        me.listarUsuario(1, '', 'nombre');
+                        swal('Estatus cambiado!', 'Haz desactivado un usuario.', 'success');
                     }).catch(function (error) {
                         console.log("es un error de post");
                     });
@@ -57670,14 +57125,16 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         cerrarModal: function cerrarModal() {
             this.modal = 0;
             this.tituloModal = '';
-            this.nombre = '';
-            this.correo = '';
-            this.contrasena = '';
+            this.name = '';
+            this.email = '';
+            this.password = '';
             this.telefono = '';
+            this.id_roles = 0;
         },
         AbrirModal: function AbrirModal(modelo, accion) {
             var data = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
 
+            this.listarRoles();
             switch (modelo) {
                 case "usuario":
                     {
@@ -57687,10 +57144,11 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                                 {
                                     this.modal = 1;
                                     this.tituloModal = 'Registrar Herramienta';
-                                    this.nombre = '';
-                                    this.correo = '';
-                                    this.contrasena = '';
+                                    this.name = '';
+                                    this.email = '';
+                                    this.password = '';
                                     this.telefono = '';
+                                    this.id_roles = 0;
                                     this.tipoAccion = 1;
                                     break;
                                 }
@@ -57700,11 +57158,12 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                                     this.modal = 1;
                                     this.tituloModal = 'Actualizar categoria';
                                     this.tipoAccion = 2;
-                                    this.nombre = data['nombre'];
-                                    this.correo = data['correo'];
-                                    this.contrasena = data['contrasena'];
+                                    this.name = data['name'];
+                                    this.email = data['email'];
+                                    this.password = data['password'];
                                     this.telefono = data['telefono'];
                                     this.id = data['id_usuario'];
+                                    this.id_roles = data['id_roles'];
                                     break;
                                 }
                         }
@@ -57718,7 +57177,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 });
 
 /***/ }),
-/* 58 */
+/* 54 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -57789,8 +57248,8 @@ var render = function() {
                             {
                               name: "model",
                               rawName: "v-model",
-                              value: _vm.nombre,
-                              expression: "nombre"
+                              value: _vm.name,
+                              expression: "name"
                             }
                           ],
                           staticClass: "form-control",
@@ -57798,13 +57257,13 @@ var render = function() {
                             type: "text",
                             placeholder: "Inserta Nombre de Usuario"
                           },
-                          domProps: { value: _vm.nombre },
+                          domProps: { value: _vm.name },
                           on: {
                             input: function($event) {
                               if ($event.target.composing) {
                                 return
                               }
-                              _vm.nombre = $event.target.value
+                              _vm.name = $event.target.value
                             }
                           }
                         })
@@ -57820,19 +57279,19 @@ var render = function() {
                             {
                               name: "model",
                               rawName: "v-model",
-                              value: _vm.correo,
-                              expression: "correo"
+                              value: _vm.email,
+                              expression: "email"
                             }
                           ],
                           staticClass: "form-control",
                           attrs: { type: "email", placeholder: "Correo" },
-                          domProps: { value: _vm.correo },
+                          domProps: { value: _vm.email },
                           on: {
                             input: function($event) {
                               if ($event.target.composing) {
                                 return
                               }
-                              _vm.correo = $event.target.value
+                              _vm.email = $event.target.value
                             }
                           }
                         })
@@ -57848,8 +57307,8 @@ var render = function() {
                             {
                               name: "model",
                               rawName: "v-model",
-                              value: _vm.contrasena,
-                              expression: "contrasena"
+                              value: _vm.password,
+                              expression: "password"
                             }
                           ],
                           staticClass: "form-control",
@@ -57857,13 +57316,13 @@ var render = function() {
                             type: "password",
                             placeholder: "Contrasena"
                           },
-                          domProps: { value: _vm.contrasena },
+                          domProps: { value: _vm.password },
                           on: {
                             input: function($event) {
                               if ($event.target.composing) {
                                 return
                               }
-                              _vm.contrasena = $event.target.value
+                              _vm.password = $event.target.value
                             }
                           }
                         })
@@ -57895,6 +57354,58 @@ var render = function() {
                             }
                           }
                         })
+                      ]),
+                      _vm._v(" "),
+                      _c("div", { staticClass: "form-group" }, [
+                        _c("label", { staticClass: " form-control-label" }, [
+                          _vm._v("Tipo De Usuario")
+                        ]),
+                        _vm._v(" "),
+                        _c(
+                          "select",
+                          {
+                            directives: [
+                              {
+                                name: "model",
+                                rawName: "v-model",
+                                value: _vm.id_roles,
+                                expression: "id_roles"
+                              }
+                            ],
+                            staticClass: "form-control",
+                            on: {
+                              change: function($event) {
+                                var $$selectedVal = Array.prototype.filter
+                                  .call($event.target.options, function(o) {
+                                    return o.selected
+                                  })
+                                  .map(function(o) {
+                                    var val = "_value" in o ? o._value : o.value
+                                    return val
+                                  })
+                                _vm.id_roles = $event.target.multiple
+                                  ? $$selectedVal
+                                  : $$selectedVal[0]
+                              }
+                            }
+                          },
+                          [
+                            _c("option", { attrs: { value: "0" } }, [
+                              _vm._v("Seleccione un rol")
+                            ]),
+                            _vm._v(" "),
+                            _vm._l(_vm.arrayRol, function(rol) {
+                              return _c("option", {
+                                key: rol.id_roles,
+                                domProps: {
+                                  value: rol.id_rol,
+                                  textContent: _vm._s(rol.nombre)
+                                }
+                              })
+                            })
+                          ],
+                          2
+                        )
                       ]),
                       _vm._v(" "),
                       _vm._m(1)
@@ -58023,7 +57534,7 @@ var render = function() {
                                     "option",
                                     {
                                       staticClass: "form-group",
-                                      attrs: { value: "nombre" }
+                                      attrs: { value: "name" }
                                     },
                                     [_vm._v("Nombre")]
                                   ),
@@ -58127,15 +57638,11 @@ var render = function() {
                               _vm._v(" "),
                               _c("td", {
                                 staticClass: "btn btn-link",
-                                domProps: {
-                                  textContent: _vm._s(usuario.nombre)
-                                }
+                                domProps: { textContent: _vm._s(usuario.name) }
                               }),
                               _vm._v(" "),
                               _c("td", {
-                                domProps: {
-                                  textContent: _vm._s(usuario.correo)
-                                }
+                                domProps: { textContent: _vm._s(usuario.email) }
                               }),
                               _vm._v(" "),
                               _c("td", {
@@ -58144,55 +57651,79 @@ var render = function() {
                                 }
                               }),
                               _vm._v(" "),
+                              _c("td", {
+                                domProps: { textContent: _vm._s(usuario.rol) }
+                              }),
+                              _vm._v(" "),
+                              _c("td", [
+                                _c(
+                                  "button",
+                                  {
+                                    staticClass: "btn btn-warning",
+                                    on: {
+                                      click: function($event) {
+                                        _vm.AbrirModal(
+                                          "usuario",
+                                          "actualizar",
+                                          usuario
+                                        )
+                                      }
+                                    }
+                                  },
+                                  [_c("i", { staticClass: "fa  fa-pencil" })]
+                                ),
+                                _vm._v(" "),
+                                _c(
+                                  "button",
+                                  {
+                                    staticClass: "btn btn-danger",
+                                    attrs: { type: "button" },
+                                    on: {
+                                      click: function($event) {
+                                        _vm.eliminarUsuario(
+                                          usuario.id_usuario,
+                                          index
+                                        )
+                                      }
+                                    }
+                                  },
+                                  [_c("i", { staticClass: "fa  fa-trash-o" })]
+                                )
+                              ]),
+                              _vm._v(" "),
                               _c(
                                 "td",
                                 [
-                                  _c(
-                                    "button",
-                                    {
-                                      staticClass: "btn btn-warning",
-                                      on: {
-                                        click: function($event) {
-                                          _vm.AbrirModal(
-                                            "usuario",
-                                            "actualizar",
-                                            usuario
-                                          )
-                                        }
-                                      }
-                                    },
-                                    [_c("i", { staticClass: "fa  fa-pencil" })]
-                                  ),
-                                  _vm._v(" "),
-                                  usuario.id_usuario
+                                  usuario.condicion
                                     ? [
-                                        _c(
-                                          "button",
-                                          {
-                                            staticClass: "btn btn-danger",
-                                            attrs: { type: "button" },
-                                            on: {
-                                              click: function($event) {
-                                                _vm.eliminarUsuario(
-                                                  usuario.id_usuario,
-                                                  index
-                                                )
-                                              }
+                                        _c("button", {
+                                          staticClass: "btn btn-danger",
+                                          attrs: { type: "button" },
+                                          on: {
+                                            click: function($event) {
+                                              _vm.desactivarUsuario(
+                                                usuario.id_usuario
+                                              )
                                             }
-                                          },
-                                          [
-                                            _c("i", {
-                                              staticClass: "fa  fa-trash-o"
-                                            })
-                                          ]
-                                        )
+                                          }
+                                        })
                                       ]
-                                    : _vm._e()
+                                    : [
+                                        _c("button", {
+                                          staticClass: "btn btn-success",
+                                          attrs: { type: "button" },
+                                          on: {
+                                            click: function($event) {
+                                              _vm.activarUsuario(
+                                                usuario.id_usuario
+                                              )
+                                            }
+                                          }
+                                        })
+                                      ]
                                 ],
                                 2
-                              ),
-                              _vm._v(" "),
-                              _vm._m(5, true)
+                              )
                             ])
                           })
                         )
@@ -58372,7 +57903,7 @@ var staticRenderFns = [
     var _c = _vm._self._c || _h
     return _c("thead", [
       _c("tr", [
-        _c("th", [_vm._v("ID")]),
+        _c("th", [_vm._v("Id")]),
         _vm._v(" "),
         _c("th", [_vm._v("Nombre")]),
         _vm._v(" "),
@@ -58380,26 +57911,11 @@ var staticRenderFns = [
         _vm._v(" "),
         _c("th", [_vm._v("telefono")]),
         _vm._v(" "),
+        _c("th", [_vm._v("Rol")]),
+        _vm._v(" "),
         _c("th", [_vm._v("Acciones")]),
         _vm._v(" "),
         _c("th", [_vm._v("Estado")])
-      ])
-    ])
-  },
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("td", [
-      _c("label", { staticClass: "switch switch-3d switch-success mr-3" }, [
-        _c("input", {
-          staticClass: "switch-input",
-          attrs: { type: "checkbox", checked: "true" }
-        }),
-        _vm._v(" "),
-        _c("span", { staticClass: "switch-label" }),
-        _vm._v(" "),
-        _c("span", { staticClass: "switch-handle" })
       ])
     ])
   }

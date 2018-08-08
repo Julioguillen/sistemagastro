@@ -9,6 +9,11 @@ use App\Herramientas_Cocina;
 
 class herramientaController extends Controller
 {
+    private $image_ext = ['jpg', 'jpeg', 'png', 'gif'];
+    private $audio_ext = ['mp3', 'ogg', 'mpga'];
+    private $video_ext = ['mp4', 'mpeg'];
+    private $document_ext = ['doc', 'docx', 'pdf', 'odt'];
+
     /**
      * Display a listing of the resource.
      *
@@ -22,8 +27,11 @@ class herramientaController extends Controller
 
            if($buscar ==''){
             $herramientas = Herramientas_Cocina::orderBy('id_herramienta','desc')->paginate(10);
+
             }else{
-               $herramientas = Herramientas_Cocina::where($criterio,'like','%'.$buscar.'%')->orderBy('id_herramienta','desc')->paginate(10);
+
+               $herramientas = Herramientas_Cocina::where('nombre','like','%'.$buscar.'%')->orderBy('id_herramienta','desc')->paginate(10);
+
            }
 
         return [
@@ -58,11 +66,19 @@ class herramientaController extends Controller
      */
     public function store(Request $request)
     {
+        if($request->get('imagen'))
+        {
+            $image = $request->get('imagen');
+            $name = time().'.' . explode('/', explode(':', substr($image, 0, strpos($image, ';')))[1])[1];
+            \Image::make($request->get('imagen'))->save(public_path('images/').$name);
+        }
+        $max_size = (int)ini_get('upload_max_filesize') * 1000;
         if (!$request->ajax())return redirect('/');
         $herramienta = new Herramientas_Cocina();
         $herramienta->nombre=$request->nombre;
         $herramienta->cantidad=$request->cantidad;
         $herramienta->descripcion=$request->descripcion;
+        $herramienta->imagen=$request->imagen;
 
         $herramienta->save();
     }

@@ -3,18 +3,23 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Usuarios;
+use App\User;
+use App\Roles;
 class UsuariosController extends Controller{
     public function index(Request $request)
     {
-        if (!$request->ajax())return redirect('/');
+        //if (!$request->ajax())return redirect('/');
         $buscar = $request->buscar;
         $criterio = $request->criterio;
 
         if($buscar ==''){
-            $usuarios = Usuarios::orderBy('id_usuario','desc')->paginate(10);
+            $usuarios = User::join('roles','users.id_roles','=','roles.id_rol')->
+            select('users.id_usuario','users.name','users.email','users.telefono','users.password','users.condicion','users.id_roles','roles.nombre as rol')
+                ->orderBy('users.id_usuario', 'desc')->paginate(10);
         }else{
-            $usuarios= Usuarios::where($criterio,'like','%'.$buscar.'%')->orderBy('id_usuario','desc')->paginate(10);
+            $usuarios = User::join('roles','users.id_roles','=','roles.id_rol')->
+            select('users.name','users.email','users.telefono','users.password','users.condicion','users.id_roles','roles.nombre as rol')
+            -> where('name','like','%'.$buscar.'%')->orderBy('users.id_usuario','desc')->paginate(10);
         }
 
         return [
@@ -26,20 +31,21 @@ class UsuariosController extends Controller{
                 'from' => $usuarios->firstItem(),
                 'to' => $usuarios->LastItem(),
             ],
-            'usuarios'=>$usuarios
+            'users'=>$usuarios
         ];
 
     }
 
     public function store(Request $request)
     {
-        if (!$request->ajax())return redirect('/');
-        $usuarios = new Usuarios();
-        $usuarios->nombre=$request->nombre;
-        $usuarios->correo=$request->correo;
-        $usuarios->contrasena=$request->contrasena;
-
+        //if (!$request->ajax())return redirect('/');
+        $usuarios = new User();
+        $usuarios->name=$request->name;
+        $usuarios->email=$request->email;
+        $usuarios->password=bcrypt($request->password);
         $usuarios->telefono=$request->telefono;
+
+        $usuarios->id_roles=$request->id_roles;
 
 
         $usuarios->save();
@@ -47,22 +53,44 @@ class UsuariosController extends Controller{
     public function update(Request $request)
     {
         if (!$request->ajax())return redirect('/');
-        $usuarios = Usuarios::findOrFail($request->id_usuario);
-        $usuarios->nombre=$request->nombre;
-        $usuarios->correo=$request->correo;
-        $usuarios->contrasena=$request->contrasena;
-
+        $usuarios = User::findOrFail($request->id_usuario);
+        $usuarios->name=$request->name;
+        $usuarios->email=$request->email;
+        $usuarios->password=bcrypt($request->password);
         $usuarios->telefono=$request->telefono;
+        $usuarios->condicion=1;
+        $usuarios->id_roles=$request->id_roles;
 
         $usuarios->save();
     }
     public function destroy($id)
     {
-        $usuarios = Usuarios::findOrFail($id);
-
+        $usuarios = User::findOrFail($id);
         $usuarios->delete();
 
 
+    }
+    public function desactivar(Request $request)
+    {
+        $usuarios = User::findOrFail($request->id_usuario);
+        $usuarios->condicion ='0';
+        $usuarios->save();
+    }
+    public function activar(Request $request)
+    {
+        $usuarios = User::findOrFail($request->id_usuario);
+        $usuarios->condicion ='1';
+        $usuarios->save();
+    }
+    public function validacion(Request $request){
+        $this->validate($request,[
+            'nombre'=>'required',
+            'correo'=>'required',
+            'contrasena'=>'required',
+            'telefono'=>'required',
+
+           'id_roles'=>'required'
+        ]);
     }
 
 }

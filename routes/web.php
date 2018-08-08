@@ -17,9 +17,15 @@ Route::get('/', 'Auth\LoginController@showLoginForm');
 Route::post('login', 'Auth\LoginController@login')->name('login');
 Route::post('logout', 'Auth\LoginController@logout')->name('logout');
 Route::get('dashboard','DashboardController@index')->name('dashboard');
+
 Route::resource('/herramienta', 'herramientaController');
 Route::post('/herramienta/registrar','herramientaController@store');
+
+
 Route::resource('/usuario', 'UsuariosController');
 Route::post('/usuario/registrar','UsuariosController@store');
 
+
+
+Route::get('/roles/listarRoles','RolesController@listarRoles');
 

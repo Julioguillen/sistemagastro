@@ -35,6 +35,12 @@
                                         <label  class=" form-control-label">Descripcion</label>
                                         <input type="text"  v-model="descripcion" placeholder="Descripcion" class="form-control">
                                     </div>
+                                    <div class="form-group">
+                                        <label  class=" form-control-label">Imagen</label>
+                                        <input type="file" v-on:change="onImageChange" class="form-control">
+                                    </div>
+
+
                                     <div v-show="errorHerramienta" class="form-group row  div-error">
                                         <div class="text-center">
                                             <div v-for="error  in errorMostrarMsjHerramienta" :key="error" v-text="error">
@@ -101,6 +107,7 @@
                                                 <th>Nombre</th>
                                                 <th>Cantidad</th>
                                                 <th>Descripcion</th>
+                                                <th>Imagen</th>
                                                 <th>Acciones</th>
                                                 <th>Estado</th>
                                             </tr>
@@ -111,6 +118,9 @@
                                                 <td class="btn btn-link" v-text="herramienta.nombre"></td>
                                                 <td v-text="herramienta.cantidad"></td>
                                                 <td v-text="herramienta.descripcion"></td>
+                                                <td class="col-md-3" v-if="herramienta.imagen">
+                                                    <img :src="herramienta.imagen" class="rounded-circle mx-auto d-block" height="70" width="90">
+                                                </td>
                                                 <td>
                                                     <button  class="btn btn-warning" @click="AbrirModal('herramienta','actualizar',herramienta)">
                                                         <i class="fa  fa-pencil"></i>
@@ -171,10 +181,12 @@
         //Declarar variables
         data(){
             return {
+
                 id: 0,
                 nombre: '',
                 cantidad: '',
                 descripcion: '',
+                 imagen:'',
                 arrayHerramienta: [],
                 modal: 0,
                 tituloModal: '',
@@ -221,6 +233,20 @@
 
         },
         methods: {
+            onImageChange(e) {
+                let files = e.target.files || e.dataTransfer.files;
+                if (!files.length)
+                    return;
+                this.createImage(files[0]);
+            },
+            createImage(file) {
+                let reader = new FileReader();
+                let vm = this;
+                reader.onload = (e) => {
+                    vm.imagen = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            },
 
           listarHerramientas(page,buscar,criterio){
 
@@ -237,6 +263,7 @@
                       console.log(error);
                   });
           },
+
             cambiarPagina(page,buscar,criterio){
               let me = this;
               me.pagination.current_page=page;
@@ -252,7 +279,8 @@
                 axios.post('/herramienta/registrar',{
                     'nombre':this.nombre,
                     'cantidad':this.cantidad,
-                    'descripcion':this.descripcion
+                    'descripcion':this.descripcion,
+                    'imagen':this.imagen
 
                 }).then(function (response) {
                     me.cerrarModal();
@@ -419,10 +447,8 @@
 </script>
 <style>
     .mostrar {
-        display: list-item !important;
-        opacity: 1 !important;
-        position: absolute !important;
-        background-color: #3c29297a !important;
+
+
     }
     .modal-content{
         width: 100% !important;

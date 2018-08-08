@@ -24,19 +24,30 @@
                                 <div class="modal-body">
                                     <div class="form-group">
                                         <label  class=" form-control-label">Nombre</label>
-                                        <input type="text"   v-model="nombre" placeholder="Inserta Nombre de Usuario" class="form-control">
+                                        <input type="text"   v-model="name" placeholder="Inserta Nombre de Usuario" class="form-control">
+
                                     </div>
                                     <div class="form-group">
                                         <label  class=" form-control-label">correo</label>
-                                        <input type="email"  v-model="correo" placeholder="Correo" class="form-control">
+                                        <input type="email"  v-model="email" placeholder="Correo" class="form-control">
                                     </div>
                                     <div class="form-group">
                                         <label  class=" form-control-label">contrasena</label>
-                                        <input type="password"  v-model="contrasena" placeholder="Contrasena" class="form-control">
+                                        <input type="password"  v-model="password" placeholder="Contrasena" class="form-control">
                                     </div>
                                     <div class="form-group">
                                         <label  class=" form-control-label">Telefeno</label>
                                         <input type="text"  v-model="telefono" placeholder="Telefeno" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label  class=" form-control-label">Tipo De Usuario</label>
+                                        <select class="form-control" v-model="id_roles">
+                                        <option value="0">Seleccione un rol</option>
+                                        <option v-for="rol in arrayRol" :key="rol.id_roles" :value="rol.id_rol" v-text="rol.nombre">
+
+                                        </option>
+
+                                        </select>
                                     </div>
                                     <div  class="form-group row  div-error">
                                         <div class="text-center">
@@ -100,7 +111,7 @@
                                                     <div class="input-group">
                                                         <div class="input-group-btn">
                                                             <select  class="dropdown-toggle btn btn-primary" v-model="criterio">
-                                                                <option class="form-group" value="nombre">Nombre</option>
+                                                                <option class="form-group" value="name">Nombre</option>
                                                                 <option class="form-group" value="descripcion">correo</option>
 
                                                             </select>
@@ -116,10 +127,11 @@
                                         <table id="bootstrap-data-table" class="table table-striped table-bordered">
                                             <thead>
                                             <tr>
-                                                <th>ID</th>
+                                                <th>Id</th>
                                                 <th>Nombre</th>
                                                 <th>Correo</th>
                                                 <th>telefono</th>
+                                                <th>Rol</th>
                                                 <th>Acciones</th>
                                                 <th>Estado</th>
                                             </tr>
@@ -127,23 +139,29 @@
                                             <tbody>
                                             <tr v-for="(usuario, index) in arrayUsuario" :key="usuario.id_usuario">
                                                 <td v-text="usuario.id_usuario"></td>
-                                                <td class="btn btn-link" v-text="usuario.nombre"></td>
-                                                <td v-text="usuario.correo"></td>
+                                                <td class="btn btn-link" v-text="usuario.name"></td>
+                                                <td v-text="usuario.email"></td>
                                                 <td v-text="usuario.telefono"></td>
+                                                <td v-text="usuario.rol"></td>
                                                 <td>
                                                     <button  class="btn btn-warning" @click="AbrirModal('usuario','actualizar',usuario)">
                                                         <i class="fa  fa-pencil"></i>
                                                     </button>
+                                                    <button type="button"  class="btn btn-danger" @click="eliminarUsuario(usuario.id_usuario,index)">
+                                                        <i class="fa  fa-trash-o"></i>
+                                                    </button>
 
-                                                    <template v-if="usuario.id_usuario">
-                                                        <button type="button"  class="btn btn-danger" @click="eliminarUsuario(usuario.id_usuario,index)">
-                                                            <i class="fa  fa-trash-o"></i>
-                                                        </button>
-                                                    </template>
                                                 </td>
                                                 <td>
-                                                    <label class="switch switch-3d switch-success mr-3"><input type="checkbox" class="switch-input" checked="true">
-                                                        <span class="switch-label"></span> <span class="switch-handle"></span></label>
+                                                    <template v-if="usuario.condicion">
+                                                          <button type="button" class="btn btn-danger" @click="desactivarUsuario(usuario.id_usuario)" ></button>
+                                                    </template>
+                                                    <template v-else="usuario.condicion">
+
+                                                            <button type="button" class="btn btn-success" @click="activarUsuario(usuario.id_usuario)" ></button>
+
+                                                    </template>
+
                                                 </td>
                                             </tr>
 
@@ -191,16 +209,19 @@
         data(){
             return {
                 id: 0,
-                nombre: '',
-                correo:'',
-                contrasena:'',
+                name: '',
+                email:'',
+                password:'',
                 telefono:'',
+                id_roles:0,
+               id_usuario:0,
                 arrayUsuario: [],
+                arrayRol: [],
                 modal: 0,
                 tituloModal: '',
                 tipoAccion: 0,
-                errorUsuario: 0,
-                errorMostrarMsjUusario: [],
+
+
                 pagination :{
                     "total": 0,
                     "per_page": 0,
@@ -210,7 +231,7 @@
                     "to": 0,
                 },
                 offset:10,
-                criterio:'nombre',
+                criterio:'name',
                 buscar:''
             }
         },
@@ -248,7 +269,7 @@
                 var url='/usuario?page='+ page + '&buscar='+buscar + '&criterio'+criterio;
                 axios.get(url).then(function (response) {
                     var  respuesta=response.data;
-                    me.arrayUsuario= respuesta.usuarios.data;
+                    me.arrayUsuario= respuesta.users.data;
                     me.pagination=respuesta.pagination;
 
 
@@ -256,6 +277,21 @@
                     .catch(function (error) {
                         console.log(error);
                     });
+            },
+            listarRoles(){
+                let me =this;
+                var url='/roles/listarRoles';
+                axios.get(url).then(function (response) {
+                    var  respuesta=response.data;
+                    me.arrayRol = respuesta.roles;
+
+
+
+                })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+
             },
             cambiarPagina(page,buscar,criterio){
                 let me = this;
@@ -268,10 +304,13 @@
 
                 let me =this;
                 axios.post('/usuario/registrar',{
-                    'nombre':this.nombre,
-                    'correo':this.correo,
-                    'contrasena':this.contrasena,
-                    'telefono':this.telefono
+                    'name':this.name,
+                    'email':this.email,
+                    'password':this.password,
+                    'telefono':this.telefono,
+                    'condicion':this.condicion,
+                    'id_roles':this.id_roles
+
 
                 }).then(function (response) {
                     me.cerrarModal();
@@ -288,11 +327,12 @@
 
                 let me =this;
                 axios.put('/usuario/actualizar',{
-                    'nombre':this.nombre,
-                    'correo':this.correo,
-                    'contrasena':this.contrasena,
+                    'name':this.name,
+                    'email':this.email,
+                    'password':this.password,
                     'telefono':this.telefono,
-                    'id_usuario': this.id
+                    'id_usuario': this.id,
+                    'id_roles':this.id_roles
                 }).then(function (response) {
                     me.cerrarModal();
                     me.listarUsuario(1,'','nombre'  );
@@ -343,10 +383,26 @@
 
             },
 
-            desactivarHerramienta(id_herramienta){
+            desactivarUsuario(id_usuario){
+
+                let me =this;
+                axios.put('/usuario/desactivar',{
+                 'id':id_usuario
+                }).then(function (response) {
+
+                    me.listarUsuario(1,'','nombre'  );
+                    console.log(response);
+                    swal("Exito", "Se Actualizo correctamente!", "success");
+                })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+
+            },
+            activarUsuario(id_usuario){
                 swal({
-                    title: 'Are you sure?',
-                    text: "You won't be able to revert this!",
+                    title: 'Estas seguro de desactivar al usuario?',
+                    text: "Podras activarlo despues",
                     type: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#3085d6',
@@ -355,14 +411,14 @@
                 }).then((result) => {
                     if (result.value) {
                         let me =this;
-                        axios.delete('/herramienta/eliminar',{
-                            'id':id_herramienta
+                        axios.put('/usuario/activar',{
+                            'id':id_usuario
                         }).then(function (response) {
-                            me.listarHerramientas();
+                            me.listarUsuario(1,'','nombre');
                             swal(
 
-                                'Deleted!',
-                                'Your file has been deleted.',
+                                'Estatus cambiado!',
+                                'Haz desactivado un usuario.',
                                 'success'
 
                             )
@@ -377,17 +433,18 @@
             },
 
 
-
             cerrarModal(){
                 this.modal=0;
                 this.tituloModal='';
-                this.nombre='';
-                this.correo='';
-                this.contrasena='';
+                this.name='';
+                this.email='';
+                this.password='';
                 this.telefono='';
+                this.id_roles=0;
 
             },
             AbrirModal(modelo,accion,data=[]){
+                this.listarRoles();
                 switch (modelo) {
                     case "usuario":
                     {
@@ -396,10 +453,11 @@
                             case "registrar": {
                                 this.modal =1;
                                 this.tituloModal='Registrar Herramienta';
-                                this.nombre='';
-                                this.correo='';
-                                this.contrasena='';
+                                this.name='';
+                                this.email='';
+                                this.password='';
                                 this.telefono='';
+                                this.id_roles=0;
                                 this.tipoAccion =1;
                                 break;
                             }
@@ -408,11 +466,12 @@
                                 this.modal =1;
                                 this.tituloModal='Actualizar categoria';
                                 this.tipoAccion =2;
-                                this.nombre=data['nombre'];
-                                this.correo=data['correo'];
-                                this.contrasena=data['contrasena'];
+                                this.name=data['name'];
+                                this.email=data['email'];
+                                this.password=data['password'];
                                 this.telefono=data['telefono'];
                                 this.id=data['id_usuario'];
+                                this.id_roles=data['id_roles'];
                                 break;
                             }
                         }
