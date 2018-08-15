@@ -5,10 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\User;
 use App\Roles;
-class UsuariosController extends Controller{
-    public function index(Request $request)
-    {
-        //if (!$request->ajax())return redirect('/');
+class UsuariosController extends Controller
+{
+
+
+    public function index(Request $request){
+
+        if (!$request->ajax())return redirect('/');
         $buscar = $request->buscar;
         $criterio = $request->criterio;
 
@@ -38,12 +41,20 @@ class UsuariosController extends Controller{
 
     public function store(Request $request)
     {
-        //if (!$request->ajax())return redirect('/');
+        if($request->get('imagen'))
+        {
+            $image = $request->get('imagen');
+            $name = time().'.' . explode('/', explode(':', substr($image, 0, strpos($image, ';')))[1])[1];
+            \Image::make($request->get('imagen'))->save(public_path('images/').$name);
+        }
+        $max_size = (int)ini_get('upload_max_filesize') * 1000;
+        if (!$request->ajax())return redirect('/');
         $usuarios = new User();
         $usuarios->name=$request->name;
         $usuarios->email=$request->email;
         $usuarios->password=bcrypt($request->password);
         $usuarios->telefono=$request->telefono;
+        $usuarios->imagen=$request->imagen;
 
         $usuarios->id_roles=$request->id_roles;
 

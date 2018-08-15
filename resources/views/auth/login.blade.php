@@ -12,21 +12,21 @@
 					 Ingresa para continuar
 					</span>
 
-
+                     {!! $errors -> first('name','<span class="help-block">:message</span>') !!}
                     <div class="wrap-input100 validate-input" data-validate = "Valid email is required: ex@abc.xyz" {{ $errors -> has('name') ? 'has-error' : ' '}}">
                     <input class="input100" type="text" name="name"
                            value="{{ old('name') }}">
                     <span class="focus-input100"></span>
                     <span class="label-input100">Email</span>
-                {!! $errors -> first('name','<span class="help-block">:message</span>') !!}
+               
             </div>
 
-
+                
             <div class="wrap-input100 validate-input {{ $errors -> has('password') ? 'has-error' : ' ' }}" data-validate="Password is required">
                 <input class="input100" type="password"  name="password">
                 <span class="focus-input100"></span>
                 <span class="label-input100">Password</span>
-                {!! $errors -> first('password','<span class="help-block">:message</span>') !!}
+               
             </div>
 
             <div class="flex-sb-m w-full p-t-3 p-b-32">

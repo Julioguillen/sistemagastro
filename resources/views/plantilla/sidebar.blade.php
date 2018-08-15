@@ -28,19 +28,14 @@
 
                 </ul>
             </li>
-            <li class="menu-item-has-children dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-th"></i>Otras herramientas</a>
-                <ul class="sub-menu children dropdown-menu">
-                    <li><i class="fa fa-puzzle-piece"></i><a href="ui-buttons.html">Ver Herramientas</a></li>
-                </ul>
-            </li>
+
 
             <h3 class="menu-title">Cristaleria y Mueble</h3><!-- /.menu-title -->
 
             <li class="menu-item-has-children dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-tasks"></i>Cristaleria</a>
                 <ul class="sub-menu children dropdown-menu">
-                    <li><i class="menu-icon fa fa-fort-awesome"></i><a href="font-fontawesome.html">Ver Cristaleria</a></li>
+                    <li @click="menu=3"><i class="menu-icon fa fa-fort-awesome"></i><a href="#">Ver Cristaleria</a></li>
 
                 </ul>
 
@@ -48,7 +43,7 @@
             <li class="menu-item-has-children dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-th"></i>Mueble</a>
                 <ul class="sub-menu children dropdown-menu">
-                    <li><i class="fa fa-puzzle-piece"></i><a href="ui-buttons.html">Ver Mueble</a></li>
+                    <li @click="menu=4"><i class="fa fa-puzzle-piece"></i><a href="#">Ver Mueble</a></li>
                 </ul>
             </li>
 
@@ -57,15 +52,22 @@
             <li class="menu-item-has-children dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-glass"></i>Cubiertos</a>
                 <ul class="sub-menu children dropdown-menu">
-                    <li><i class="fa fa-puzzle-piece"></i><a href="ui-buttons.html">Ver Cubiertos</a></li>
-                    <li><i class="fa fa-puzzle-piece"></i><a href="ui-buttons.html">Ver Herramienta de Limpieza</a></li>
+                    <li @click="menu=5" ><i class="fa fa-puzzle-piece"></i><a href="#">Ver Cubiertos</a></li>
+
+                </ul>
+            </li>
+            <li class="menu-item-has-children dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-glass"></i>Limpieza</a>
+                <ul class="sub-menu children dropdown-menu">
+
+                    <li @click="menu=6"><i class="fa fa-puzzle-piece"></i><a href="#">Ver Herramienta de Limpieza</a></li>
                 </ul>
             </li>
             <h3 class="menu-title">Piezas dañadas</h3><!-- /.menu-title -->
             <li class="menu-item-has-children dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-glass"></i>Piezas dañadas</a>
                 <ul class="sub-menu children dropdown-menu">
-                    <li><i class="fa fa-puzzle-piece"></i><a href="ui-buttons.html">Ver piezas</a></li>
+                    <li @click="menu=7"><i class="fa fa-puzzle-piece"></i><a href="#">Ver piezas</a></li>
                 </ul>
             </li>
         </ul>

@@ -6,12 +6,53 @@
                 <!-- OVERVIEW -->
                 <div class="panel panel-headline">
                     <div class="panel-heading">
-                        <h3 class="pb-2 display-4">Registro de Herramientas</h3>
+                        <h3 class="pb-2 display-4">Inventario de Herramientas</h3>
                         <p class="panel-subtitle">Period: Oct 14, 2018 - Oct 21, 2018</p>
                     </div>
 
+                    <div class="modal fade" tabindex="-1"  :class="{'mostrar' : modalImagen}" role="dialog" aria-labelledby="mediumModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="mediumModalLabel" v-text="tituloModal"></h5>
+                                    <button type="button" class="close" @click="cerrarModal()" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="form-group"  >
+                                       <center> <h3 v-model="nombre">{{nombre}}</h3></center>
+                                       <center><img  :src="imagen" v-model="imagen" class="img-thumbnail"  height="500" width="500" /></center>
+
+                                    </div>
 
 
+                                    <div v-show="errorHerramienta" class="form-group row  div-error">
+                                        <div class="text-center">
+                                            <div v-for="error  in errorMostrarMsjHerramienta" :key="error" v-text="error">
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+                                </div>
+
+
+                                <div class="modal-footer">
+
+                                    <button type="button" class="btn btn-secondary" @click="cerrarModal()">Cancelar</button>
+
+                                    <button type="button" class="btn btn-primary" v-if="tipoAccion==3" @click="Imagen()">Aceptar</button>
+
+
+                                </div>
+
+
+                            </div>
+
+                        </div>
+                    </div>
                     <div class="modal fade" tabindex="-1"  :class="{'mostrar' : modal}" role="dialog" aria-labelledby="mediumModalLabel" aria-hidden="true">
                         <div class="modal-dialog modal-lg" role="document">
                             <div class="modal-content">
@@ -24,8 +65,8 @@
                                 <div class="modal-body">
                                     <div class="form-group"  >
                                         <label  class=" form-control-label">Nombre</label>
-                                        <input type="text"   v-model="nombre"  v-validate="'required'" name="nombre"  placeholder="Inserta Nombre de Herramienta" class="form-control">
-                                        <span>{{ errors.first('nombre') }}</span>
+                                        <input type="text"   v-model="nombre"  name="nombre"  placeholder="Inserta Nombre de Herramienta" class="form-control">
+                                        <input type="text" disabled v-if="tipoAccion==3" v-model="nombre"  v-validate="'required'" name="nombre"  placeholder="Inserta Nombre de Cristaleria" class="form-control">
                                     </div>
                                     <div class="form-group">
                                         <label  class=" form-control-label">Cantidad</label>
@@ -58,6 +99,7 @@
                                     <button type="button" class="btn btn-secondary" @click="cerrarModal()">Cancelar</button>
                                     <button type="button" class="btn btn-primary" v-if="tipoAccion==1" @click="RegistrarHerramientas()">Aceptar</button>
                                     <button type="button" class="btn btn-primary" v-if="tipoAccion==2" @click="ActualizarCategoria()">Actualizar</button>
+                                    <button type="button" class="btn btn-primary" v-if="tipoAccion==3" @click="DanadosCategoria()">Aceptar</button>
 
 
                                 </div>
@@ -74,7 +116,7 @@
                             <div class="col-md-12">
                                 <div class="card">
                                     <div class="card-header">
-                                        <strong class="card-title">Data Table</strong>
+                                        <strong class="card-title">Tabla herramientas</strong>
                                     </div>
 
                                     <div class="card-body">
@@ -109,22 +151,34 @@
                                                 <th>Descripcion</th>
                                                 <th>Imagen</th>
                                                 <th>Acciones</th>
-                                                <th>Estado</th>
+
                                             </tr>
                                             </thead>
                                             <tbody>
-                                            <tr v-for="(herramienta, index) in arrayHerramienta" :key="herramienta.id_herramienta">
+
+                                            <tr  v-for="(herramienta, index) in arrayHerramienta" :key="herramienta.id_herramienta">
+
                                                 <td v-text="herramienta.id_herramienta"></td>
-                                                <td class="btn btn-link" v-text="herramienta.nombre"></td>
+                                                <td v-text="herramienta.nombre"></td>
                                                 <td v-text="herramienta.cantidad"></td>
                                                 <td v-text="herramienta.descripcion"></td>
-                                                <td class="col-md-3" v-if="herramienta.imagen">
-                                                    <img :src="herramienta.imagen" class="rounded-circle mx-auto d-block" height="70" width="90">
+
+                                                <td>
+                                                    <button  class="btn btn-success" @click="AbrirModal('herramienta','actualizarImagen',herramienta)">
+                                                       Ver Imagen <i class="fa  fa-eye"></i>
+                                                    </button>
+
+
                                                 </td>
+
                                                 <td>
                                                     <button  class="btn btn-warning" @click="AbrirModal('herramienta','actualizar',herramienta)">
                                                         <i class="fa  fa-pencil"></i>
                                                     </button>
+                                                    <button  class="btn btn-success" @click="Modal('danados','danados',herramienta)">
+                                                        <i class="fa  fa-glass"></i>
+                                                    </button>
+
 
                                                 <template v-if="herramienta.id_herramienta">
                                                     <button type="button"  class="btn btn-danger" @click="eliminarHerramienta(herramienta.id_herramienta,index)">
@@ -132,10 +186,7 @@
                                                     </button>
                                                 </template>
                                                 </td>
-                                                <td>
-                                                    <label class="switch switch-3d switch-success mr-3"><input type="checkbox" class="switch-input" checked="true">
-                                                    <span class="switch-label"></span> <span class="switch-handle"></span></label>
-                                                </td>
+
                                             </tr>
 
                                             </tbody>
@@ -176,12 +227,16 @@
 </template>
 
 <script>
-
+    import modal from 'vue-semantic-modal'
     export default {
+        components: {
+            modal
+        },
         //Declarar variables
         data(){
             return {
 
+                open: false,
                 id: 0,
                 nombre: '',
                 cantidad: '',
@@ -189,6 +244,7 @@
                  imagen:'',
                 arrayHerramienta: [],
                 modal: 0,
+                modalImagen: 0,
                 tituloModal: '',
                 tipoAccion: 0,
                 errorHerramienta: 0,
@@ -232,7 +288,30 @@
 
 
         },
+        props:{
+            imgMode:{
+                type: Boolean,
+                required: false,
+                default: false,
+
+            },
+            defaultWidth:{
+                type: String,
+                required: false,
+                default: '50%'
+            },
+
+
+        },
         methods: {
+            confirm () {
+                this.confirmed = true
+                this.showModal = false
+            },
+            hideModal() {
+                this.open = false
+            },
+
             onImageChange(e) {
                 let files = e.target.files || e.dataTransfer.files;
                 if (!files.length)
@@ -300,6 +379,7 @@
                     'nombre':this.nombre,
                     'cantidad':this.cantidad,
                     'descripcion':this.descripcion,
+                    'imagen':this.imagen,
                     'id_herramienta': this.id
                 }).then(function (response) {
                     me.cerrarModal();
@@ -312,6 +392,8 @@
                     });
 
             },
+
+
             eliminarHerramienta(id_herramienta){
                 swal({
                     title: 'Estas seguro?',
@@ -350,6 +432,26 @@
 
 
             },
+            DanadosCategoria(){
+
+                let me =this;
+                axios.post('/danados/agregar',{
+                    'nombre':this.nombre,
+                    'cantidad':this.cantidad,
+                    'descripcion':this.descripcion,
+                    'imagen':this.imagen
+                }).then(function (response) {
+                    me.cerrarModal();
+                    me.listarCristaleria(1,'','nombre'  );
+                    console.log(response);
+                    swal("Exito", "Se agrego a Piezas Dañadas correctamente!", "success");
+                })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+
+            },
+
 
             desactivarHerramienta(id_herramienta){
                 swal({
@@ -363,7 +465,7 @@
                 }).then((result) => {
                     if (result.value) {
                         let me =this;
-                        axios.delete('/herramienta/eliminar',{
+                        axios.put('/herramienta/desactivar',{
                              'id':id_herramienta
                         }).then(function (response) {
                             me.listarHerramientas();
@@ -377,6 +479,38 @@
                         }).catch(function (error) {
                                 console.log("es un error de post");
                             });
+
+
+                    }
+                });
+
+            },
+            activarHerramienta(id_herramienta){
+                swal({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    type: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.value) {
+                        let me =this;
+                        axios.put('/herramienta/activar',{
+                            'id':id_herramienta
+                        }).then(function (response) {
+                            me.listarHerramientas();
+                            swal(
+
+                                'Deleted!',
+                                'Your file has been deleted.',
+                                'success'
+
+                            )
+                        }).catch(function (error) {
+                            console.log("es un error de post");
+                        });
 
 
                     }
@@ -397,6 +531,7 @@
             },
             cerrarModal(){
               this.modal=0;
+                this.modalImagen=0;
               this.tituloModal='';
               this.nombre='';
               this.cantidad='';
@@ -415,16 +550,31 @@
                                     this.nombre='';
                                     this.cantidad='';
                                     this.descripcion='';
+                                    this.imagen='';
                                     this.tipoAccion =1;
                                     break;
                                 }
 
                                 case 'actualizar': {
                                     this.modal =1;
-                                    this.tituloModal='Actualizar categoria';
+
+                                    this.tituloModal='Actualizar herramienta';
                                     this.tipoAccion =2;
                                     this.nombre=data['nombre'];
                                     this.cantidad=data['cantidad'];
+                                    this.imagen=data['imagen'];
+                                    this.descripcion=data['descripcion'];
+                                    this.id=data['id_herramienta'];
+                                    break;
+                                }
+                                case 'actualizarImagen': {
+                                    this.modalImagen =1;
+
+                                    this.tituloModal='Imagen de herramienta';
+                                    this.tipoAccion =2;
+                                    this.nombre=data['nombre'];
+                                    this.cantidad=data['cantidad'];
+                                    this.imagen=data['imagen'];
                                     this.descripcion=data['descripcion'];
                                     this.id=data['id_herramienta'];
                                     break;
@@ -432,7 +582,28 @@
                             }
                     }
                     }
-            }
+            },
+            Modal(modelo,accion,data=[]){
+                switch (modelo) {
+                    case "danados":
+                    {
+
+                        switch (accion) {
+                            case 'danados': {
+                                this.modal =1;
+
+                                this.tituloModal='Piezas Dañadas';
+                                this.tipoAccion =3;
+                                this.nombre=data['nombre'];
+                                this.cantidad='';
+                                this.descripcion='';
+                                break;
+                            }
+                        }
+                    }
+                }
+            },
+
         },
         mounted() {
           this.listarHerramientas(1,this.buscar,this.criterio);
@@ -446,21 +617,5 @@
 
 </script>
 <style>
-    .mostrar {
-
-
-    }
-    .modal-content{
-        width: 100% !important;
-        position: absolute !important;
-    }
-    .div-error{
-        display:flex;
-        justify-content: center;
-    }
-    .text-error{
-        color: red !important;
-        font-weight:bold;
-    }
 
 </style>

@@ -47,50 +47,29 @@
 
             <div class="col-sm-5">
                 <div class="user-area dropdown float-right">
-                    @if (auth()->user()->id_rol != 0)
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <p>Bienvenido {{ auth()->user()->name }}</p>
-                        </a>
 
-                        <div class="user-menu dropdown-menu">
-                            <a class="nav-link" href="#"><i class="fa fa- user"></i>Configuraciones</a>
-                            <a class="nav-link" href="#"><i class="fa fa -cog"></i>Registrar usuario</a>
 
-                            <a class="nav-link" href="#"><i class="fa fa-power -off"></i>funcion 3</a>
-                        </div>
-                    @else
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <p>Bienvenido {{ auth()->user()->name }}</p>
-                        </a>
-                    @endif
-                    <div>
+                    <div >
                         <form method="POST" action="{{ route('logout') }}">
                             {{ csrf_field() }}
-                            <button class="btn btn-danger ">Cerrar sesión</button>
+                            <div class="btn-group"  >
+                                <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                  Opciones
+                                    <i class="fa  fa-gears"></i>
+                                </button>
+                                <div class="user-menu dropdown-menu">
+                                    <button class="btn btn-link">
+                                        <i class="fa  fa-power-off"></i>
+                                        Cerrar sesión</button>
+                                    <button class="btn btn-link" href="#"><i class="fa fa-user"></i>Registrar usuario</button>
+                                </div>
+                            </div>
                         </form>
                     </div>
                 </div>
 
 
-                <div class="language-select dropdown" id="language-select">
-                    <a class="dropdown-toggle" href="#" data-toggle="dropdown"  id="language" aria-haspopup="true" aria-expanded="true">
-                        <i class="flag-icon flag-icon-us"></i>
-                    </a>
-                    <div class="dropdown-menu" aria-labelledby="language" >
-                        <div class="dropdown-item">
-                            <span class="flag-icon flag-icon-fr"></span>
-                        </div>
-                        <div class="dropdown-item">
-                            <i class="flag-icon flag-icon-es"></i>
-                        </div>
-                        <div class="dropdown-item">
-                            <i class="flag-icon flag-icon-us"></i>
-                        </div>
-                        <div class="dropdown-item">
-                            <i class="flag-icon flag-icon-it"></i>
-                        </div>
-                    </div>
-                </div>
+
 
             </div>
         </div>
@@ -110,7 +89,7 @@
             <div class="page-header float-right">
                 <div class="page-title">
                     <ol class="breadcrumb text-right">
-                        <li class="active">Incio</li>
+                        <li class="active">Inicio</li>
                     </ol>
                 </div>
             </div>
@@ -118,7 +97,22 @@
     </div>
 
     <div class="content mt-3">
+        <div class="mx-auto d-block">
 
+            <img src="images/profile.png" class="rounded-circle mx-auto d-block">
+            @if (auth()->user()->id_rol != 2)
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <center><h3> {{ auth()->user()->name }}</h3></center>
+                </a>
+
+
+            @else
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <center><h3>{{ auth()->user()->name }}</h3></center>
+                </a>
+            @endif
+
+        </div>
 @yield('contenido')
 
 

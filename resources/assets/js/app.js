@@ -12,8 +12,9 @@ window.Vue = require('vue');
 import Vue from 'vue';
 import VeeValidate from 'vee-validate';
 Vue.use(VeeValidate);
+import VueModalTor from 'vue-modaltor'
 
-
+Vue.use(VueModalTor)
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to
@@ -25,6 +26,11 @@ Vue.use(VeeValidate);
 Vue.component('herramientas', require('./components/Herramientas.vue'));
 Vue.component('equipos', require('./components/Equipos.vue'));
 Vue.component('usuarios', require('./components/Usuarios.vue'));
+Vue.component('cristaleria', require('./components/Cristaleria.vue'));
+Vue.component('mueble', require('./components/Mueble.vue'));
+Vue.component('danados', require('./components/Dañados.vue'));
+Vue.component('cubiertos', require('./components/Cubiertos.vue'));
+Vue.component('limpieza', require('./components/Limpieza.vue'));
 
 
 
@@ -32,6 +38,7 @@ Vue.component('usuarios', require('./components/Usuarios.vue'));
 const app = new Vue({
 
     el: '#app',
+
     data : {
     	menu :  0
 

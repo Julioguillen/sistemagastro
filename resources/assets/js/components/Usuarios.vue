@@ -22,14 +22,15 @@
                                     </button>
                                 </div>
                                 <div class="modal-body">
-                                    <div class="form-group">
+                                    <div class="form-group" :class="{'has-error': errors.has('email') }">
                                         <label  class=" form-control-label">Nombre</label>
                                         <input type="text"   v-model="name" placeholder="Inserta Nombre de Usuario" class="form-control">
 
                                     </div>
                                     <div class="form-group">
                                         <label  class=" form-control-label">correo</label>
-                                        <input type="email"  v-model="email" placeholder="Correo" class="form-control">
+                                        <input type="email"   v-model="email" placeholder="Correo" class="form-control">
+
                                     </div>
                                     <div class="form-group">
                                         <label  class=" form-control-label">contrasena</label>
@@ -81,18 +82,9 @@
 
 
                                     <div class="card-body">
-                                        <div class="mx-auto d-block">
-                                            <img class="rounded-circle mx-auto d-block" src="images/admin.jpg" alt="Card image cap">
-                                            <h5 class="text-sm-center mt-2 mb-1"></h5>
-                                            <div class="location text-sm-center"><i class="fa fa-map-marker"></i> California, United States</div>
-                                        </div>
-                                        <hr>
-                                        <div class="card-text text-sm-center">
-                                            <a href="#"><i class="fa fa-facebook pr-1"></i></a>
-                                            <a href="#"><i class="fa fa-twitter pr-1"></i></a>
-                                            <a href="#"><i class="fa fa-linkedin pr-1"></i></a>
-                                            <a href="#"><i class="fa fa-pinterest pr-1"></i></a>
-                                        </div>
+
+
+
                                     </div>
 
                             <div class="col-md-12">
@@ -112,7 +104,7 @@
                                                         <div class="input-group-btn">
                                                             <select  class="dropdown-toggle btn btn-primary" v-model="criterio">
                                                                 <option class="form-group" value="name">Nombre</option>
-                                                                <option class="form-group" value="descripcion">correo</option>
+
 
                                                             </select>
                                                             <button class="btn btn-primary" @click="listarUsuario(1,buscar,criterio)">
@@ -133,13 +125,13 @@
                                                 <th>telefono</th>
                                                 <th>Rol</th>
                                                 <th>Acciones</th>
-                                                <th>Estado</th>
+
                                             </tr>
                                             </thead>
                                             <tbody>
                                             <tr v-for="(usuario, index) in arrayUsuario" :key="usuario.id_usuario">
                                                 <td v-text="usuario.id_usuario"></td>
-                                                <td class="btn btn-link" v-text="usuario.name"></td>
+                                                <td  v-text="usuario.name"></td>
                                                 <td v-text="usuario.email"></td>
                                                 <td v-text="usuario.telefono"></td>
                                                 <td v-text="usuario.rol"></td>
@@ -152,17 +144,7 @@
                                                     </button>
 
                                                 </td>
-                                                <td>
-                                                    <template v-if="usuario.condicion">
-                                                          <button type="button" class="btn btn-danger" @click="desactivarUsuario(usuario.id_usuario)" ></button>
-                                                    </template>
-                                                    <template v-else="usuario.condicion">
 
-                                                            <button type="button" class="btn btn-success" @click="activarUsuario(usuario.id_usuario)" ></button>
-
-                                                    </template>
-
-                                                </td>
                                             </tr>
 
                                             </tbody>
@@ -213,6 +195,7 @@
                 email:'',
                 password:'',
                 telefono:'',
+                imagen:'',
                 id_roles:0,
                id_usuario:0,
                 arrayUsuario: [],
@@ -262,6 +245,21 @@
 
         },
         methods: {
+            onImageChange(e) {
+                let files = e.target.files || e.dataTransfer.files;
+                if (!files.length)
+                    return;
+                this.createImage(files[0]);
+            },
+            createImage(file) {
+                let reader = new FileReader();
+                let vm = this;
+                reader.onload = (e) => {
+                    vm.imagen = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            },
+
 
             listarUsuario(page,buscar,criterio){
 

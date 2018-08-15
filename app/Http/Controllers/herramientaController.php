@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-//use Illuminate\Support\Facades\DB;
 use App\Herramientas_Cocina;
+use Illuminate\Support\Facades\DB;
+
 
 
 class herramientaController extends Controller
@@ -33,6 +34,14 @@ class herramientaController extends Controller
                $herramientas = Herramientas_Cocina::where('nombre','like','%'.$buscar.'%')->orderBy('id_herramienta','desc')->paginate(10);
 
            }
+        if($buscar ==''){
+            $herramientas = Herramientas_Cocina::orderBy('id_herramienta','desc')->paginate(10);
+
+        }else{
+
+            $herramientas = Herramientas_Cocina::where('descripcion','like','%'.$buscar.'%')->orderBy('id_herramienta','desc')->paginate(10);
+
+        }
 
         return [
           'pagination'=>[
@@ -119,6 +128,7 @@ class herramientaController extends Controller
         $herramienta->nombre=$request->nombre;
         $herramienta->cantidad=$request->cantidad;
         $herramienta->descripcion=$request->descripcion;
+        $herramienta->imagen=$request->imagen;
 
         $herramienta->save();
     }
