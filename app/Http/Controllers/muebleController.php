@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Mueble;
+use App\Danados;
 
 class muebleController extends Controller
 {
@@ -105,9 +106,10 @@ class muebleController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
         if (!$request->ajax())return redirect('/');
+        if ($request->cantidad_danados == null){
         $mueble = Mueble::findOrFail($request->id_mueble);
         $mueble->nombre=$request->nombre;
         $mueble->cantidad=$request->cantidad;
@@ -115,7 +117,19 @@ class muebleController extends Controller
         $mueble->imagen=$request->imagen;
 
         $mueble->save();
-    }
+        }else {
+            $mueble= Mueble::findOrFail($request->id_mueble)->decrement('cantidad', $request->cantidad_danados);
+
+            $danados = new Danados();
+            $danados->nombre = $request->nombre;
+            $danados->cantidad_danados = $request->cantidad_danados;
+            $danados->descripcion_danados = $request->descripcion_danados;
+            $danados->control = $request->control;
+            $danados->alumno = $request->alumno;
+            $danados->imagen = $request->imagen;
+            $danados->save();
+        }
+        }
 
     /**
      * Remove the specified resource from storage.

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Limpieza;
+use App\Danados;
 
 class limpiezaController extends Controller
 {
@@ -60,7 +61,7 @@ class limpiezaController extends Controller
         $limpieza->nombre=$request->nombre;
         $limpieza->cantidad=$request->cantidad;
         $limpieza->descripcion=$request->descripcion;
-
+        $limpieza->imagen=$request->imagen;
         $limpieza->save();
     }
 
@@ -96,12 +97,25 @@ class limpiezaController extends Controller
     public function update(Request $request, $id)
     {
         if (!$request->ajax())return redirect('/');
+        if ($request->cantidad_danados == null){
         $limpieza = Limpieza::findOrFail($request->id_plimpieza);
         $limpieza->nombre=$request->nombre;
         $limpieza->cantidad=$request->cantidad;
         $limpieza->descripcion=$request->descripcion;
-
+        $limpieza->imagen=$request->imagen;
         $limpieza->save();
+        }else{
+            $limpieza = Limpieza::findOrFail($request->id_plimpieza)->decrement('cantidad',$request->cantidad_danados);
+
+            $danados = new Danados();
+            $danados->nombre=$request->nombre;
+            $danados->cantidad_danados=$request->cantidad_danados;
+            $danados->descripcion_danados=$request->descripcion_danados;
+            $danados->control=$request->control;
+            $danados->alumno=$request->alumno;
+            $danados->imagen=$request->imagen;
+            $danados->save();
+        }
     }
 
     /**

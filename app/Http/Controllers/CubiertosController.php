@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Cubiertos;
+use App\Danados;
+use Illuminate\Support\Facades\DB;
 
 class CubiertosController extends Controller
 {
@@ -55,11 +57,19 @@ class CubiertosController extends Controller
      */
     public function store(Request $request)
     {
+        if($request->get('imagen'))
+        {
+            $image = $request->get('imagen');
+            $name = time().'.' . explode('/', explode(':', substr($image, 0, strpos($image, ';')))[1])[1];
+            \Image::make($request->get('imagen'))->save(public_path('images/').$name);
+        }
+        $max_size = (int)ini_get('upload_max_filesize') * 1000;
         if (!$request->ajax())return redirect('/');
         $cubiertos = new Cubiertos();
         $cubiertos->nombre=$request->nombre;
         $cubiertos->cantidad=$request->cantidad;
         $cubiertos->descripcion=$request->descripcion;
+        $cubiertos->imagen=$request->imagen;
 
         $cubiertos->save();
     }
@@ -93,16 +103,29 @@ class CubiertosController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    
+
     public function update(Request $request, $id)
     {
         if (!$request->ajax())return redirect('/');
+        if ($request->cantidad_danados == null){
         $cubiertos = Cubiertos::findOrFail($request->id_cubiertos);
         $cubiertos->nombre=$request->nombre;
         $cubiertos->cantidad=$request->cantidad;
         $cubiertos->descripcion=$request->descripcion;
 
         $cubiertos->save();
+        }else{
+            $cubiertos = Cubiertos::findOrFail($request->id_cubiertos)->decrement('cantidad',$request->cantidad_danados);
+
+            $danados = new Danados();
+            $danados->nombre=$request->nombre;
+            $danados->cantidad_danados=$request->cantidad_danados;
+            $danados->descripcion_danados=$request->descripcion_danados;
+            $danados->control=$request->control;
+            $danados->alumno=$request->alumno;
+            $danados->imagen=$request->imagen;
+            $danados->save();
+        }
     }
 
     /**

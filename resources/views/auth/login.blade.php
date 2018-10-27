@@ -17,33 +17,21 @@
                     <input class="input100" type="text" name="name"
                            value="{{ old('name') }}">
                     <span class="focus-input100"></span>
-                    <span class="label-input100">Email</span>
-               
+                    <span class="label-input100">Usuario</span>
+
             </div>
 
-                
+
             <div class="wrap-input100 validate-input {{ $errors -> has('password') ? 'has-error' : ' ' }}" data-validate="Password is required">
                 <input class="input100" type="password"  name="password">
                 <span class="focus-input100"></span>
-                <span class="label-input100">Password</span>
-               
-            </div>
-
-            <div class="flex-sb-m w-full p-t-3 p-b-32">
-                <div class="contact100-form-checkbox">
-                    <input class="input-checkbox100" id="ckb1" type="checkbox" name="remember-me">
-                    <label class="label-checkbox100" for="ckb1">
-                        Remember me
-                    </label>
-                </div>
-
+                <span class="label-input100">Contraseña</span>
 
             </div>
-
 
             <div class="container-login100-form-btn">
                 <button class="login100-form-btn">
-                    Login
+                    Iniciar sesion
                 </button>
             </div>
 

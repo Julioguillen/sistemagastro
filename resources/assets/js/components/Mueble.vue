@@ -7,9 +7,7 @@
                 <div class="panel panel-headline">
                     <div class="panel-heading">
                         <h3 class="pb-2 display-4">Inventario de Muebles</h3>
-                        <p class="panel-subtitle">Period: Oct 14, 2018 - Oct 21, 2018</p>
                     </div>
-
 
                     <div class="modal fade" tabindex="-1"  :class="{'mostrar' : modalImagen}" role="dialog" aria-labelledby="mediumModalLabel" aria-hidden="true">
                         <div class="modal-dialog modal-lg" role="document">
@@ -23,25 +21,10 @@
                                 <div class="modal-body">
                                     <div class="form-group"  >
                                         <center> <h3 v-model="nombre">{{nombre}}</h3></center>
-                                        <center><img  :src="imagen" v-model="imagen" class="img-thumbnail"  height="500" width="500" /></center>
+                                        <center><img  :src="imagen" v-model="imagen" class="img-thumbnail"  height="545" width="545" /></center>
 
                                     </div>
-
-
-
                                 </div>
-
-
-                                <div class="modal-footer">
-
-                                    <button type="button" class="btn btn-secondary" @click="cerrarModal()">Cancelar</button>
-
-                                    <button type="button" class="btn btn-primary" v-if="tipoAccion==3" @click="Imagen()">Aceptar</button>
-
-
-                                </div>
-
-
                             </div>
 
                         </div>
@@ -56,11 +39,10 @@
                                     </button>
                                 </div>
                                 <div class="modal-body">
+                                    <template v-if="listado">
                                     <div class="form-group"  >
                                         <label  class=" form-control-label">Nombre</label>
-                                         <input type="text" v-if="tipoAccion==1 || tipoAccion==2" v-model="nombre"  v-validate="'required'" name="nombre"  placeholder="Inserta Nombre de Cristaleria" class="form-control">
-                                        <input type="text" disabled v-if="tipoAccion==3" v-model="nombre"  v-validate="'required'" name="nombre"  placeholder="Inserta Nombre de Cristaleria" class="form-control">
-                                        <span>{{ errors.first('nombre') }}</span>
+                                         <input type="text"  v-model="nombre"   name="nombre"  placeholder="Inserta Nombre de Cristaleria" class="form-control">
                                     </div>
                                     <div class="form-group">
                                         <label  class=" form-control-label">Cantidad</label>
@@ -74,30 +56,40 @@
                                         <label  class=" form-control-label">Imagen</label>
                                         <input type="file" v-on:change="onImageChange" class="form-control">
                                     </div>
-                                    <div v-show="errorMueble" class="form-group row  div-error">
-                                        <div class="text-center">
-                                            <div v-for="error  in errorMostrarMsjMueble" :key="error" v-text="error">
-
-                                            </div>
+                                        <button  class="btn btn-link" v-if="tipoAccion==2" @click="mostrarDetalle()">Dar de baja</button>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" @click="cerrarModal()">Cancelar</button>
+                                            <button type="button" class="btn btn-primary" v-if="tipoAccion==1" @click="RegistrarMueble()">Aceptar</button>
+                                            <button type="button" class="btn btn-primary" v-if="tipoAccion==2" @click="ActualizarCategoria()">Actualizar</button>
+                                        </div>
+                                    </template>
+                                    <template v-else>
+                                    <h5>Registro de herramienta danada</h5>
+                                    <div class="form-group">
+                                        <label v-if="tipoAccion==2" class=" form-control-label">Alumno</label>
+                                        <input type="text" v-if="tipoAccion==2" v-model="alumno" placeholder="Nombre Alumno" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label v-if="tipoAccion==2" class="form-control-label" >control</label>
+                                        <input type="text" v-if="tipoAccion==2" v-model="control" placeholder="Numero de Control" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label v-if="tipoAccion==2" class="form-control-label" >Descripcion de daño</label>
+                                        <input type="text" v-if="tipoAccion==2" v-model="descripcion_danados" placeholder="Descripcion" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label v-if="tipoAccion==2" class="form-control-label" >Dañados</label>
+                                        <input type="text" v-if="tipoAccion==2" v-model="cantidad_danados" placeholder="piezas Danadas" class="form-control">
+                                    </div>
+                                        <button  class="btn btn-link" v-if="tipoAccion==2" @click="ocultarDetalle()">Dar de baja</button>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" @click="cerrarModal()">Cancelar</button>
+                                            <button type="button" class="btn btn-primary" v-if="tipoAccion==1" @click="RegistrarMueble()">Aceptar</button>
+                                            <button type="button" class="btn btn-danger" v-if="tipoAccion==2" @click="ActualizarCategoria()">Dar de baja</button>
 
                                         </div>
-
-                                    </div>
+                                    </template>
                                 </div>
-
-
-
-                                <div class="modal-footer">
-
-                                    <button type="button" class="btn btn-secondary" @click="cerrarModal()">Cancelar</button>
-                                    <button type="button" class="btn btn-primary" v-if="tipoAccion==1" @click="RegistrarMueble()">Aceptar</button>
-                                    <button type="button" class="btn btn-primary" v-if="tipoAccion==2" @click="ActualizarCategoria()">Actualizar</button>
-                                    <button type="button" class="btn btn-primary" v-if="tipoAccion==3" @click="DanadosCategoria()">Aceptar</button>
-
-
-                                </div>
-
-
                             </div>
 
                         </div>
@@ -114,7 +106,7 @@
 
                                     <div class="card-body">
                                         <button type="button" class="btn btn-primary" @click="AbrirModal('mueble','registrar')"><i class="fa fa-plus"></i>
-                                            Agregar
+                                            Agregar  Mueble
                                         </button>
                                         <div class="col-lg-6">
                                         <div class="row form-group">
@@ -162,9 +154,7 @@
                                                     <button  class="btn btn-warning" @click="AbrirModal('mueble','actualizar',mueble)">
                                                         <i class="fa  fa-pencil"></i>
                                                     </button>
-                                                     <button  class="btn btn-success" @click="Modal('danados','danados',mueble)">
-                                                        <i class="fa  fa-book"></i>
-                                                    </button>
+
 
                                                 <template v-if="mueble.id_mueble">
                                                     <button type="button"  class="btn btn-danger" @click="eliminarMueble(mueble.id_mueble,index)">
@@ -218,9 +208,14 @@
         data(){
             return {
                 id: 0,
+                listado:1,
                 nombre: '',
                 cantidad: '',
                 descripcion: '',
+                cantidad_danados:'',
+                descripcion_danados:'',
+                alumno:'',
+                control:'',
                 imagen:'',
                 arrayMueble: [],
                 modal: 0,
@@ -270,6 +265,12 @@
         },
 
         methods: {
+            mostrarDetalle(){
+                this.listado=0;
+            },
+            ocultarDetalle(){
+                this.listado=1;
+            },
             onImageChange(e) {
                 let files = e.target.files || e.dataTransfer.files;
                 if (!files.length)
@@ -337,6 +338,10 @@
                     'cantidad':this.cantidad,
                     'descripcion':this.descripcion,
                     'imagen':this.imagen,
+                    'cantidad_danados':this.cantidad_danados,
+                    'descripcion_danados':this.descripcion_danados,
+                    'control':this.control,
+                    'alumno':this.alumno,
                     'id_mueble': this.id
                 }).then(function (response) {
                     me.cerrarModal();
@@ -352,15 +357,17 @@
             DanadosCategoria(){
 
                 let me =this;
-                axios.post('/danados/agregar',{
+                axios.post('/herramienta/danados',{
                     'nombre':this.nombre,
-                    'cantidad':this.cantidad,
-                    'descripcion':this.descripcion,
+                    'cantidad':this.cantidad_danados,
+                    'descripcion':this.descripcion_danados,
+                    'alumno':this.alumno,
+                    'control':this.control,
                     'imagen':this.imagen
-
                 }).then(function (response) {
                     me.cerrarModal();
-                    me.listarCristaleria(1,'','nombre'  );
+                    me.listarHerramientas(1,'','nombre'  );
+
                     console.log(response);
                     swal("Exito", "Se agrego a Piezas Dañadas correctamente!", "success");
                 })
@@ -479,18 +486,22 @@
 
                                 case 'actualizar': {
                                     this.modal =1;
-                                    this.tituloModal='Actualizar categoria';
+                                    this.tituloModal='Actualizar Mueble';
                                     this.tipoAccion =2;
                                     this.nombre=data['nombre'];
                                     this.cantidad=data['cantidad'];
                                     this.descripcion=data['descripcion'];
+                                    this.cantidad_danados='';
+                                    this.descripcion_danados='';
+                                    this.alumno='';
+                                    this.control='';
                                     this.id=data['id_mueble'];
                                     break;
                                 }
                                 case 'actualizarImagen': {
                                     this.modalImagen =1;
 
-                                    this.tituloModal='Imagen de herramienta';
+                                    this.tituloModal='Imagen de Mueble';
                                     this.tipoAccion =2;
                                     this.nombre=data['nombre'];
                                     this.cantidad=data['cantidad'];
@@ -536,14 +547,28 @@
 </script>
 <style>
     .mostrar {
-        display: list-item !important;
+        position: fixed !important;
+        z-index: 9998;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100%;
+        height: 100%;
+        transition: opacity .3s ease !important;
+        position: fixed !important;
+        z-index: 1 !important;
+        display: table !important;
         opacity: 1 !important;
-        position: absolute !important;
         background-color: #3c29297a !important;
     }
     .modal-content{
+        left: 0;
+        top: 0;
+        position: fixed !important;
+        z-index: 1 !important;
         width: 100% !important;
-        position: absolute !important;
+        max-height: calc(100vh - 50px) !important;
+        overflow-y: auto !important;
+
     }
     .div-error{
         display:flex;

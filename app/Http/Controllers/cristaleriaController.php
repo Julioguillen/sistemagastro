@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Cristaleria;
-
+use App\Danados;
 
 class cristaleriaController extends Controller
 {
@@ -101,6 +101,7 @@ class cristaleriaController extends Controller
     public function update(Request $request, $id)
     {
         if (!$request->ajax())return redirect('/');
+        if ($request->cantidad_danados == null){
         $cristaleria = Cristaleria::findOrFail($request->id_cristaleria);
         $cristaleria->nombre=$request->nombre;
         $cristaleria->cantidad=$request->cantidad;
@@ -108,6 +109,18 @@ class cristaleriaController extends Controller
         $cristaleria->imagen=$request->imagen;
 
         $cristaleria->save();
+        }else{
+             $cristaleria= Cristaleria::findOrFail($request->id_cristaleria)->decrement('cantidad',$request->cantidad_danados);
+
+            $danados = new Danados();
+            $danados->nombre=$request->nombre;
+            $danados->cantidad_danados=$request->cantidad_danados;
+            $danados->descripcion_danados=$request->descripcion_danados;
+            $danados->control=$request->control;
+            $danados->alumno=$request->alumno;
+            $danados->imagen=$request->imagen;
+            $danados->save();
+        }
     }
 
     /**

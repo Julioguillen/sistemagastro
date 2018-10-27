@@ -16,9 +16,11 @@ class CreateDanadosTable extends Migration
         Schema::create('danados', function (Blueprint $table) {
             $table->increments('id_danados');
             $table->string('nombre');
-            $table->integer('cantidad');
-            $table->string('descripcion');
-            $table->text('imagen');
+            $table->integer('cantidad_danados');
+            $table->string('descripcion_danados');
+            $table->integer('control');
+            $table->string('alumno');
+            $table->longtext('imagen');
             $table->timestamps();
         });
     }

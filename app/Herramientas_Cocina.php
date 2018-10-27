@@ -11,6 +11,8 @@ class Herramientas_Cocina extends Model
     protected $primaryKey ="id_herramienta";
     protected $fillable = ['id_herramienta','nombre','cantidad','condicion'];
 
-
+    public function Cantidad(){
+        return $this->belongsTo('App\Danados');
+    }
 
 }

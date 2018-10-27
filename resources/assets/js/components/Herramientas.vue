@@ -7,7 +7,6 @@
                 <div class="panel panel-headline">
                     <div class="panel-heading">
                         <h3 class="pb-2 display-4">Inventario de Herramientas</h3>
-                        <p class="panel-subtitle">Period: Oct 14, 2018 - Oct 21, 2018</p>
                     </div>
 
                     <div class="modal fade" tabindex="-1"  :class="{'mostrar' : modalImagen}" role="dialog" aria-labelledby="mediumModalLabel" aria-hidden="true">
@@ -21,12 +20,11 @@
                                 </div>
                                 <div class="modal-body">
                                     <div class="form-group"  >
+
                                        <center> <h3 v-model="nombre">{{nombre}}</h3></center>
-                                       <center><img  :src="imagen" v-model="imagen" class="img-thumbnail"  height="500" width="500" /></center>
+                                       <center><img  :src="imagen" v-model="imagen" class="img-thumbnail"  height="540" width="540" /></center>
 
                                     </div>
-
-
                                     <div v-show="errorHerramienta" class="form-group row  div-error">
                                         <div class="text-center">
                                             <div v-for="error  in errorMostrarMsjHerramienta" :key="error" v-text="error">
@@ -37,17 +35,6 @@
 
                                     </div>
                                 </div>
-
-
-                                <div class="modal-footer">
-
-                                    <button type="button" class="btn btn-secondary" @click="cerrarModal()">Cancelar</button>
-
-                                    <button type="button" class="btn btn-primary" v-if="tipoAccion==3" @click="Imagen()">Aceptar</button>
-
-
-                                </div>
-
 
                             </div>
 
@@ -62,7 +49,8 @@
                                         <span aria-hidden="true">&times;</span>
                                     </button>
                                 </div>
-                                <div class="modal-body">
+                                <div class="modal-body" >
+                                    <template v-if="listado">
                                     <div class="form-group"  >
                                         <label  class=" form-control-label">Nombre</label>
                                         <input type="text"   v-model="nombre"  name="nombre"  placeholder="Inserta Nombre de Herramienta" class="form-control">
@@ -70,7 +58,7 @@
                                     </div>
                                     <div class="form-group">
                                         <label  class=" form-control-label">Cantidad</label>
-                                        <input type="number"  v-model="cantidad" placeholder="Cantidad" class="form-control">
+                                        <input type="number"   v-model="cantidad" placeholder="Cantidad" class="form-control">
                                     </div>
                                     <div class="form-group">
                                         <label  class=" form-control-label">Descripcion</label>
@@ -80,30 +68,45 @@
                                         <label  class=" form-control-label">Imagen</label>
                                         <input type="file" v-on:change="onImageChange" class="form-control">
                                     </div>
+                                        <button  class="btn btn-link" v-if="tipoAccion==2" @click="mostrarDetalle()">Dar de baja</button>
+                                        <div class="modal-footer" >
 
-
-                                    <div v-show="errorHerramienta" class="form-group row  div-error">
-                                        <div class="text-center">
-                                            <div v-for="error  in errorMostrarMsjHerramienta" :key="error" v-text="error">
-
-                                            </div>
-
+                                            <button type="button" class="btn btn-secondary" @click="cerrarModal()">Cancelar</button>
+                                            <button type="button" class="btn btn-primary" v-if="tipoAccion==1" @click="RegistrarHerramientas()">Aceptar</button>
+                                            <button type="button" class="btn btn-primary" v-if="tipoAccion==2" @click="ActualizarCategoria()">Actualizar</button>
                                         </div>
+                                    </template>
 
+                                    <template v-else>
+                                    <h5>Baja de Herramienta</h5>
+                                        <br>
+                                    <div class="form-group">
+                                        <label v-if="tipoAccion==2" class=" form-control-label">Alumno</label>
+                                        <input type="text" v-if="tipoAccion==2" v-model="alumno" placeholder="Nombre del alumno" class="form-control">
                                     </div>
+                                    <div class="form-group">
+                                        <label v-if="tipoAccion==2" class="form-control-label" >Control</label>
+                                        <input type="text" v-if="tipoAccion==2" v-model="control" placeholder="Numero de control" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label v-if="tipoAccion==2" class="form-control-label" >Descripcion de dano</label>
+                                        <input type="text" v-if="tipoAccion==2" v-model="descripcion_danados" placeholder="Descripcion" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label v-if="tipoAccion==2" class="form-control-label" >Dañados</label>
+                                        <input type="text" v-if="tipoAccion==2" v-model="cantidad_danados" placeholder="piezas Dañadas" class="form-control">
+                                    </div>
+                                        <button  class="btn btn-link" @click="ocultarDetalle()">Volver</button>
+                                        <div class="modal-footer" >
+
+                                            <button type="button" class="btn btn-secondary" @click="cerrarModal()">Cancelar</button>
+                                            <button type="button" class="btn btn-primary" v-if="tipoAccion==1" @click="RegistrarHerramientas()">Aceptar</button>
+                                            <button type="button" class="btn btn-danger" v-if="tipoAccion==2" @click="ActualizarCategoria()">Dar de Baja</button>
+                                        </div>
+                                    </template>
+
+
                                 </div>
-
-
-                                <div class="modal-footer">
-
-                                    <button type="button" class="btn btn-secondary" @click="cerrarModal()">Cancelar</button>
-                                    <button type="button" class="btn btn-primary" v-if="tipoAccion==1" @click="RegistrarHerramientas()">Aceptar</button>
-                                    <button type="button" class="btn btn-primary" v-if="tipoAccion==2" @click="ActualizarCategoria()">Actualizar</button>
-                                    <button type="button" class="btn btn-primary" v-if="tipoAccion==3" @click="DanadosCategoria()">Aceptar</button>
-
-
-                                </div>
-
 
                             </div>
 
@@ -121,7 +124,7 @@
 
                                     <div class="card-body">
                                         <button type="button" class="btn btn-primary" @click="AbrirModal('herramienta','registrar')"><i class="fa fa-plus"></i>
-                                            Agregar
+                                            Agregar Herramienta
                                         </button>
                                         <div class="col-lg-6">
                                         <div class="row form-group">
@@ -136,12 +139,17 @@
                                                         <button class="btn btn-primary" @click="listarHerramientas(1,buscar,criterio)">
                                                             <i class="fa fa-search"></i> Search
                                                         </button>
+
                                                     </div>
                                                     <input type="text"  v-model="buscar" @keyup.enter="listarHerramientas(1,buscar,criterio)" placeholder="Nombre a buscar" class="form-control">
+
                                                 </div>
+
                                             </div>
+
                                         </div>
                                         </div>
+
                                         <table id="bootstrap-data-table" class="table table-striped table-bordered">
                                             <thead>
                                             <tr>
@@ -160,37 +168,35 @@
 
                                                 <td v-text="herramienta.id_herramienta"></td>
                                                 <td v-text="herramienta.nombre"></td>
-                                                <td v-text="herramienta.cantidad"></td>
+
+                                                <td >{{herramienta.cantidad}}</td>
                                                 <td v-text="herramienta.descripcion"></td>
 
                                                 <td>
                                                     <button  class="btn btn-success" @click="AbrirModal('herramienta','actualizarImagen',herramienta)">
                                                        Ver Imagen <i class="fa  fa-eye"></i>
                                                     </button>
-
-
                                                 </td>
 
                                                 <td>
+
                                                     <button  class="btn btn-warning" @click="AbrirModal('herramienta','actualizar',herramienta)">
                                                         <i class="fa  fa-pencil"></i>
                                                     </button>
-                                                    <button  class="btn btn-success" @click="Modal('danados','danados',herramienta)">
-                                                        <i class="fa  fa-glass"></i>
-                                                    </button>
 
-
-                                                <template v-if="herramienta.id_herramienta">
+                                                    <template v-if="herramienta.id_herramienta">
                                                     <button type="button"  class="btn btn-danger" @click="eliminarHerramienta(herramienta.id_herramienta,index)">
                                                         <i class="fa  fa-trash-o"></i>
                                                     </button>
-                                                </template>
+                                                   </template>
+
                                                 </td>
 
                                             </tr>
 
                                             </tbody>
                                         </table>
+
                                         <nav>
                                             <ul class="pagination">
                                              <li class="page-item" v-if="pagination.current_page>1">
@@ -216,9 +222,6 @@
                     </div><!-- .animated -->
                 </div>
                 <!-- END OVERVIEW -->
-
-
-
             </div>
         </div>
         <!-- END MAIN CONTENT -->
@@ -227,20 +230,23 @@
 </template>
 
 <script>
-    import modal from 'vue-semantic-modal'
+
     export default {
-        components: {
-            modal
-        },
+
         //Declarar variables
         data(){
             return {
 
                 open: false,
                 id: 0,
+                listado:1,
                 nombre: '',
-                cantidad: '',
+                cantidad:'',
+                cantidad_danados:'',
                 descripcion: '',
+                descripcion_danados:'',
+                alumno:'',
+               control:'',
                  imagen:'',
                 arrayHerramienta: [],
                 modal: 0,
@@ -249,6 +255,7 @@
                 tipoAccion: 0,
                 errorHerramienta: 0,
                 errorMostrarMsjHerramienta: [],
+
                 pagination :{
                     "total": 0,
                     "per_page": 0,
@@ -284,34 +291,19 @@
                    from++;
                }
                return pagesArray;
-             }
+             },
 
-
-        },
-        props:{
-            imgMode:{
-                type: Boolean,
-                required: false,
-                default: false,
-
-            },
-            defaultWidth:{
-                type: String,
-                required: false,
-                default: '50%'
-            },
 
 
         },
+
         methods: {
-            confirm () {
-                this.confirmed = true
-                this.showModal = false
+            mostrarDetalle(){
+                this.listado=0;
             },
-            hideModal() {
-                this.open = false
+            ocultarDetalle(){
+                this.listado=1;
             },
-
             onImageChange(e) {
                 let files = e.target.files || e.dataTransfer.files;
                 if (!files.length)
@@ -378,6 +370,10 @@
                 axios.put('/herramienta/actualizar',{
                     'nombre':this.nombre,
                     'cantidad':this.cantidad,
+                    'cantidad_danados':this.cantidad_danados,
+                    'descripcion_danados':this.descripcion_danados,
+                    'control':this.control,
+                    'alumno':this.alumno,
                     'descripcion':this.descripcion,
                     'imagen':this.imagen,
                     'id_herramienta': this.id
@@ -435,14 +431,17 @@
             DanadosCategoria(){
 
                 let me =this;
-                axios.post('/danados/agregar',{
+                axios.post('/herramienta/danados',{
                     'nombre':this.nombre,
-                    'cantidad':this.cantidad,
-                    'descripcion':this.descripcion,
+                    'cantidad':this.cantidad_danados,
+                    'descripcion':this.descripcion_danados,
+                    'alumno':this.alumno,
+                    'control':this.control,
                     'imagen':this.imagen
                 }).then(function (response) {
                     me.cerrarModal();
-                    me.listarCristaleria(1,'','nombre'  );
+                    me.listarHerramientas(1,'','nombre'  );
+
                     console.log(response);
                     swal("Exito", "Se agrego a Piezas Dañadas correctamente!", "success");
                 })
@@ -564,6 +563,10 @@
                                     this.cantidad=data['cantidad'];
                                     this.imagen=data['imagen'];
                                     this.descripcion=data['descripcion'];
+                                    this.cantidad_danados='';
+                                    this.descripcion_danados='';
+                                    this.alumno='';
+                                    this.control='';
                                     this.id=data['id_herramienta'];
                                     break;
                                 }
@@ -583,26 +586,7 @@
                     }
                     }
             },
-            Modal(modelo,accion,data=[]){
-                switch (modelo) {
-                    case "danados":
-                    {
 
-                        switch (accion) {
-                            case 'danados': {
-                                this.modal =1;
-
-                                this.tituloModal='Piezas Dañadas';
-                                this.tipoAccion =3;
-                                this.nombre=data['nombre'];
-                                this.cantidad='';
-                                this.descripcion='';
-                                break;
-                            }
-                        }
-                    }
-                }
-            },
 
         },
         mounted() {
@@ -617,5 +601,67 @@
 
 </script>
 <style>
+    .modal-mask {
+        position: fixed;
+        z-index: 9998;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, .5);
+        display: table;
+        transition: opacity .3s ease;
+    }
 
+    .modal-wrapper {
+        display: table-cell;
+        vertical-align: middle;
+    }
+
+    .modal-container {
+        width: 300px;
+        margin: 0px auto;
+        padding: 20px 30px;
+        background-color: #fff;
+        border-radius: 2px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, .33);
+        transition: all .3s ease;
+        font-family: Helvetica, Arial, sans-serif;
+    }
+
+    .modal-header h3 {
+        margin-top: 0;
+        color: #42b983;
+    }
+
+    .modal-body {
+        margin: 20px 0;
+    }
+
+    .modal-default-button {
+        float: right;
+    }
+
+    /*
+     * The following styles are auto-applied to elements with
+     * transition="modal" when their visibility is toggled
+     * by Vue.js.
+     *
+     * You can easily play with the modal transition by editing
+     * these styles.
+     */
+
+    .modal-enter {
+        opacity: 0;
+    }
+
+    .modal-leave-active {
+        opacity: 0;
+    }
+
+    .modal-enter .modal-container,
+    .modal-leave-active .modal-container {
+        -webkit-transform: scale(1.1);
+        transform: scale(1.1);
+    }
 </style>

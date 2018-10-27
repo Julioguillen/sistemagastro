@@ -20,8 +20,11 @@ Route::get('dashboard','DashboardController@index')->name('dashboard');
 
 Route::resource('/herramienta', 'herramientaController');
 Route::post('/herramienta/registrar','herramientaController@store');
+Route::post('/herramienta/{id_herramienta}','herramientaController@danados');
 
 
+Route::resource('/cristaleria', 'cristaleriaController');
+Route::post('/cristaleria/registrar','cristaleriaController@store');
 
 Route::resource('/usuario', 'UsuariosController');
 Route::post('/usuario/registrar','UsuariosController@store');
@@ -40,10 +43,8 @@ Route::get('/roles/listarRoles','RolesController@listarRoles');
 
 Route::resource('/cubiertos', 'CubiertosController');
 Route::post('/cubiertos/registrar','CubiertosController@store');
-
 Route::resource('/limpieza', 'limpiezaController');
 Route::post('/limpieza/registrar','limpiezaController@store');
 
-Route::get('/visualizar', 'PdfController@index');
-Route::get('/descargar', 'PdfController@pdf');
-
+Route::get('/pdfVer', 'danadosController@pdfVer');
+Route::get('/pdfDescargar', 'danadosController@pdfDescargar');

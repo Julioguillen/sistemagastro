@@ -7,10 +7,7 @@
                 <div class="panel panel-headline">
                     <div class="panel-heading">
                         <h3 class="pb-2 display-4">Perfil de usuario</h3>
-                        <p class="panel-subtitle">Period: Oct 14, 2018 - Oct 21, 2018</p>
                     </div>
-
-
 
                     <div class="modal fade" tabindex="-1"  :class="{'mostrar' : modal}" role="dialog" aria-labelledby="mediumModalLabel" aria-hidden="true">
                         <div class="modal-dialog modal-lg" role="document">
@@ -490,14 +487,28 @@
 </script>
 <style>
     .mostrar {
-        display: list-item !important;
+        position: fixed !important;
+        z-index: 9998;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100%;
+        height: 100%;
+        transition: opacity .3s ease !important;
+        position: fixed !important;
+        z-index: 1 !important;
+        display: table !important;
         opacity: 1 !important;
-        position: absolute !important;
         background-color: #3c29297a !important;
     }
     .modal-content{
+        left: 0;
+        top: 0;
+        position: fixed !important;
+        z-index: 1 !important;
         width: 100% !important;
-        position: absolute !important;
+        max-height: calc(100vh - 0px) !important;
+        overflow-y: auto !important;
+
     }
     .div-error{
         display:flex;

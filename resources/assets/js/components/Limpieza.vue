@@ -7,12 +7,8 @@
                 <div class="panel panel-headline">
                     <div class="panel-heading">
                         <h3 class="pb-2 display-4">Inventario de Limpieza</h3>
-                        <p class="panel-subtitle">Period: Oct 14, 2018 - Oct 21, 2018</p>
                     </div>
-
-
-
-                    <div class="modal fade" tabindex="-1"  :class="{'mostrar' : modal}" role="dialog" aria-labelledby="mediumModalLabel" aria-hidden="true">
+                    <div class="modal fade" tabindex="-1"  :class="{'mostrar' : modalImagen}" role="dialog" aria-labelledby="mediumModalLabel" aria-hidden="true">
                         <div class="modal-dialog modal-lg" role="document">
                             <div class="modal-content">
                                 <div class="modal-header">
@@ -23,46 +19,89 @@
                                 </div>
                                 <div class="modal-body">
                                     <div class="form-group"  >
-                                        <label  class=" form-control-label">Nombre</label>
-                                        <input type="text"   v-model="nombre"  v-validate="'required'" name="nombre"  placeholder="Inserta Nombre de Limpieza" class="form-control">
-                                        <span>{{ errors.first('nombre') }}</span>
-                                    </div>
-                                    <div class="form-group">
-                                        <label  class=" form-control-label">Cantidad</label>
-                                        <input type="number"  v-model="cantidad" placeholder="Cantidad" class="form-control">
-                                    </div>
-                                    <div class="form-group">
-                                        <label  class=" form-control-label">Descripcion</label>
-                                        <input type="text"  v-model="descripcion" placeholder="Descripcion" class="form-control">
-                                    </div>
-                                    <div v-show="errorLimpieza" class="form-group row  div-error">
-                                        <div class="text-center">
-                                            <div v-for="error  in errorMostrarMsjLimpieza" :key="error" v-text="error">
 
-                                            </div>
-
-                                        </div>
+                                        <center> <h3 v-model="nombre">{{nombre}}</h3></center>
+                                        <center><img  :src="imagen" v-model="imagen" class="img-thumbnail"  height="540" width="540" /></center>
 
                                     </div>
                                 </div>
-                            
-
-
-                                <div class="modal-footer">
-
-                                    <button type="button" class="btn btn-secondary" @click="cerrarModal()">Cancelar</button>
-                                    <button type="button" class="btn btn-primary" v-if="tipoAccion==1" @click="RegistrarLimpieza()">Aceptar</button>
-                                    <button type="button" class="btn btn-primary" v-if="tipoAccion==2" @click="ActualizarCategoria()">Actualizar</button>
-
-
-                                </div>
-
 
                             </div>
 
                         </div>
                     </div>
+                    <div class="modal fade" tabindex="-1"  :class="{'mostrar' : modal}" role="dialog" aria-labelledby="mediumModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="mediumModalLabel" v-text="tituloModal"></h5>
+                                    <button type="button" class="close" @click="cerrarModal()" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body" >
+                                    <template v-if="listado">
+                                        <div class="form-group"  >
+                                            <label  class=" form-control-label">Nombre</label>
+                                            <input type="text"   v-model="nombre"  name="nombre"  placeholder="Inserta Nombre de Herramienta" class="form-control">
+                                            <input type="text" disabled v-if="tipoAccion==3" v-model="nombre"  v-validate="'required'" name="nombre"  placeholder="Inserta Nombre de Cristaleria" class="form-control">
+                                        </div>
+                                        <div class="form-group">
+                                            <label  class=" form-control-label">Cantidad</label>
+                                            <input type="number"   v-model="cantidad" placeholder="Cantidad" class="form-control">
+                                        </div>
+                                        <div class="form-group">
+                                            <label  class=" form-control-label">Descripcion</label>
+                                            <input type="text"  v-model="descripcion" placeholder="Descripcion" class="form-control">
+                                        </div>
+                                        <div class="form-group">
+                                            <label  class=" form-control-label">Imagen</label>
+                                            <input type="file" v-on:change="onImageChange" class="form-control">
+                                        </div>
+                                        <button  class="btn btn-link" v-if="tipoAccion==2" @click="mostrarDetalle()">Dar de baja</button>
+                                        <div class="modal-footer" >
 
+                                            <button type="button" class="btn btn-secondary" @click="cerrarModal()">Cancelar</button>
+                                            <button type="button" class="btn btn-primary" v-if="tipoAccion==1" @click="RegistrarHerramientas()">Aceptar</button>
+                                            <button type="button" class="btn btn-primary" v-if="tipoAccion==2" @click="ActualizarCategoria()">Actualizar</button>
+                                        </div>
+                                    </template>
+
+                                    <template v-else>
+                                        <h5>Baja de Producto</h5>
+                                        <br>
+                                        <div class="form-group">
+                                            <label v-if="tipoAccion==2" class=" form-control-label">Alumno</label>
+                                            <input type="text" v-if="tipoAccion==2" v-model="alumno" placeholder="Nombre del alumno" class="form-control">
+                                        </div>
+                                        <div class="form-group">
+                                            <label v-if="tipoAccion==2" class="form-control-label" >Control</label>
+                                            <input type="text" v-if="tipoAccion==2" v-model="control" placeholder="Numero de control" class="form-control">
+                                        </div>
+                                        <div class="form-group">
+                                            <label v-if="tipoAccion==2" class="form-control-label" >Descripcion de dano</label>
+                                            <input type="text" v-if="tipoAccion==2" v-model="descripcion_danados" placeholder="Descripcion" class="form-control">
+                                        </div>
+                                        <div class="form-group">
+                                            <label v-if="tipoAccion==2" class="form-control-label" >Dañados</label>
+                                            <input type="text" v-if="tipoAccion==2" v-model="cantidad_danados" placeholder="piezas Dañadas" class="form-control">
+                                        </div>
+                                        <button  class="btn btn-link" @click="ocultarDetalle()">Volver</button>
+                                        <div class="modal-footer" >
+
+                                            <button type="button" class="btn btn-secondary" @click="cerrarModal()">Cancelar</button>
+                                            <button type="button" class="btn btn-primary" v-if="tipoAccion==1" @click="RegistrarHerramientas()">Aceptar</button>
+                                            <button type="button" class="btn btn-danger" v-if="tipoAccion==2" @click="ActualizarCategoria()">Dar de Baja</button>
+                                        </div>
+                                    </template>
+
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
                     <div class="animated fadeIn">
                         <div class="row">
 
@@ -74,7 +113,7 @@
 
                                     <div class="card-body">
                                         <button type="button" class="btn btn-primary" @click="AbrirModal('limpieza','registrar')"><i class="fa fa-plus"></i>
-                                            Agregar
+                                            Agregar Producto
                                         </button>
                                         <div class="col-lg-6">
                                         <div class="row form-group">
@@ -102,16 +141,22 @@
                                                 <th>Nombre</th>
                                                 <th>Cantidad</th>
                                                 <th>Descripcion</th>
+                                                <th>Imagen</th>
                                                 <th>Acciones</th>
-                                                <th>Estado</th>
+
                                             </tr>
                                             </thead>
                                             <tbody>
                                             <tr v-for="(limpieza, index) in arrayLimpieza" :key="limpieza.id_plimpieza">
                                                 <td v-text="limpieza.id_plimpieza"></td>
-                                                <td class="btn btn-link" v-text="limpieza.nombre"></td>
+                                                <td v-text="limpieza.nombre"></td>
                                                 <td v-text="limpieza.cantidad"></td>
                                                 <td v-text="limpieza.descripcion"></td>
+                                                <td>
+                                                    <button  class="btn btn-success" @click="AbrirModal('limpieza','actualizarImagen',limpieza)">
+                                                    Ver Imagen <i class="fa  fa-eye"></i>
+                                                    </button>
+                                                </td>
                                                 <td>
                                                     <button  class="btn btn-warning" @click="AbrirModal('limpieza','actualizar',limpieza)">
                                                         <i class="fa  fa-pencil"></i>
@@ -123,10 +168,7 @@
                                                     </button>
                                                 </template>
                                                 </td>
-                                                <td>
-                                                    <label class="switch switch-3d switch-success mr-3"><input type="checkbox" class="switch-input" checked="true">
-                                                    <span class="switch-label"></span> <span class="switch-handle"></span></label>
-                                                </td>
+
                                             </tr>
 
                                             </tbody>
@@ -173,9 +215,12 @@
         data(){
             return {
                 id: 0,
+                listado:1,
                 nombre: '',
+                modalImagen:0,
                 cantidad: '',
                 descripcion: '',
+                imagen:'',
                 arrayLimpieza: [],
                 modal: 0,
                 tituloModal: '',
@@ -222,6 +267,26 @@
 
         },
         methods: {
+            mostrarDetalle(){
+                this.listado=0;
+            },
+            ocultarDetalle(){
+                this.listado=1;
+            },
+            onImageChange(e) {
+                let files = e.target.files || e.dataTransfer.files;
+                if (!files.length)
+                    return;
+                this.createImage(files[0]);
+            },
+            createImage(file) {
+                let reader = new FileReader();
+                let vm = this;
+                reader.onload = (e) => {
+                    vm.imagen = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            },
 
           listarLimpieza(page,buscar,criterio){
 
@@ -253,7 +318,8 @@
                 axios.post('/limpieza/registrar',{
                     'nombre':this.nombre,
                     'cantidad':this.cantidad,
-                    'descripcion':this.descripcion
+                    'descripcion':this.descripcion,
+                    'imagen':this.imagen
 
                 }).then(function (response) {
                     me.cerrarModal();
@@ -273,6 +339,11 @@
                     'nombre':this.nombre,
                     'cantidad':this.cantidad,
                     'descripcion':this.descripcion,
+                    'imagen':this.imagen,
+                    'cantidad_danados':this.cantidad_danados,
+                    'descripcion_danados':this.descripcion_danados,
+                    'control':this.control,
+                    'alumno':this.alumno,
                     'id_plimpieza': this.id
                 }).then(function (response) {
                     me.cerrarModal();
@@ -356,6 +427,28 @@
                 });
 
             },
+            DanadosCategoria(){
+
+                let me =this;
+                axios.post('/herramienta/danados',{
+                    'nombre':this.nombre,
+                    'cantidad':this.cantidad_danados,
+                    'descripcion':this.descripcion_danados,
+                    'alumno':this.alumno,
+                    'control':this.control,
+                    'imagen':this.imagen
+                }).then(function (response) {
+                    me.cerrarModal();
+                    me.listarHerramientas(1,'','nombre'  );
+
+                    console.log(response);
+                    swal("Exito", "Se agrego a Piezas Dañadas correctamente!", "success");
+                })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+
+            },
 
 
             ValidarLimpieza(){
@@ -370,10 +463,11 @@
             },
             cerrarModal(){
               this.modal=0;
+              this.modalImagen=0;
               this.tituloModal='';
               this.nombre='';
               this.cantidad='';
-                this.descripcion='';
+              this.descripcion='';
 
             },
             AbrirModal(modelo,accion,data=[]){
@@ -394,12 +488,24 @@
 
                                 case 'actualizar': {
                                     this.modal =1;
-                                    this.tituloModal='Actualizar categoria';
+                                    this.tituloModal='Actualizar articulo de limpieza';
                                     this.tipoAccion =2;
                                     this.nombre=data['nombre'];
                                     this.cantidad=data['cantidad'];
                                     this.descripcion=data['descripcion'];
                                     this.id=data['id_plimpieza'];
+                                    break;
+                                }
+                                case 'actualizarImagen': {
+                                    this.modalImagen =1;
+
+                                    this.tituloModal='Imagen de Producto de limpieza';
+                                    this.tipoAccion =2;
+                                    this.nombre=data['nombre'];
+                                    this.cantidad=data['cantidad'];
+                                    this.imagen=data['imagen'];
+                                    this.descripcion=data['descripcion'];
+                                    this.id=data['id_herramienta'];
                                     break;
                                 }
                             }
@@ -420,14 +526,28 @@
 </script>
 <style>
     .mostrar {
-        display: list-item !important;
+        position: fixed !important;
+        z-index: 9998;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100%;
+        height: 100%;
+        transition: opacity .3s ease !important;
+        position: fixed !important;
+        z-index: 1 !important;
+        display: table !important;
         opacity: 1 !important;
-        position: absolute !important;
         background-color: #3c29297a !important;
     }
     .modal-content{
+        left: 0;
+        top: 0;
+        position: fixed !important;
+        z-index: 1 !important;
         width: 100% !important;
-        position: absolute !important;
+        max-height: calc(100vh - 0px) !important;
+        overflow-y: auto !important;
+
     }
     .div-error{
         display:flex;

@@ -19,7 +19,7 @@
 
 <body style="background-color: #666666;">
 
-<hr>
+
 @if (session() -> has('flash'))
     <div class="alert alert-info">{{ session('flash') }}</div>
 @endif

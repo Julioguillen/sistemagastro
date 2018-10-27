@@ -1,4 +1,4 @@
-<template>
+  <template>
     <div class="main">
         <!-- MAIN CONTENT -->
         <div class="main-content">
@@ -7,10 +7,8 @@
                 <div class="panel panel-headline">
                     <div class="panel-heading">
                         <h3 class="pb-2 display-4">Inventario de Piezas dañadas</h3>
-                        <p class="panel-subtitle">Period: Oct 14, 2018 - Oct 21, 2018</p>
+
                     </div>
-
-
 
                     <div class="modal fade" tabindex="-1"  :class="{'mostrar' : modalImagen}" role="dialog" aria-labelledby="mediumModalLabel" aria-hidden="true">
                         <div class="modal-dialog modal-lg" role="document">
@@ -27,25 +25,21 @@
                                         <center><img  :src="imagen" v-model="imagen" class="img-thumbnail"  height="500" width="500" /></center>
 
                                     </div>
-
-
                                 </div>
-
 
                                 <div class="modal-footer">
 
                                     <button type="button" class="btn btn-secondary" @click="cerrarModal()">Cancelar</button>
-
                                     <button type="button" class="btn btn-primary" v-if="tipoAccion==3" @click="Imagen()">Aceptar</button>
 
-
                                 </div>
-
 
                             </div>
 
                         </div>
+
                     </div>
+
 
                     <div class="animated fadeIn">
                         <div class="row">
@@ -81,24 +75,23 @@
                                                 <th>Cantidad</th>
                                                 <th>Descripcion</th>
                                                 <th>imagen</th>
-                                                <th>Periodo</th>
-                                                <th>Formato</th>
+                                                <th>opciones</th>
+                                                <th>Fecha de daño</th>
                                             </tr>
                                             </thead>
                                             <tbody>
                                             <tr v-for="(danados) in arrayDanados" :key="danados.id_danados">
 
                                                 <td  v-text="danados.nombre"></td>
-                                                <td v-text="danados.cantidad"></td>
-                                                <td v-text="danados.descripcion"></td>
+                                                <td v-text="danados.cantidad_danados"></td>
+                                                <td v-text="danados.descripcion_danados"></td>
                                                 <td >
                                                     <button  class="btn btn-success" @click="AbrirModal('danados','actualizarImagen',danados)">
                                                         Ver Imagen <i class="fa  fa-eye"></i>
                                                     </button>
-
-
-                                                <td v-text="danados.created_at"> </td>
+                                                </td>
                                                 <td>
+                                                    <!--Botones agregados para descargar y ver el pdf-->
                                                     <button @click="verPdf(danados.id_danados)"  class="btn btn-info">
                                                         <i class="fa  fa-eye"></i>
                                                     </button>
@@ -106,8 +99,10 @@
                                                     <button @click="descargarPdf()" class="btn btn-success">
                                                         <i class="fa  fa-download"></i>
                                                     </button>
-
+                                                    <!-- fin de botones agregados -->
                                                 </td>
+
+                                                <td> {{moment.utc(danados.created_at).format('D [de] MMMM [del] YYYY')}} </td>
                                             </tr>
 
                                             </tbody>
@@ -148,6 +143,8 @@
 </template>
 
 <script>
+
+
 
     export default {
         //Declarar variables
@@ -203,16 +200,23 @@
 
         },
         methods: {
-            verPdf: function (id_danados) {
+          //Estos son los metodos que agrege
+          verPdf: function (id_danados) {
 
-                location.href='/pdfDescargar'
+              axios.get('verPdf').then(function (response) {
+                  var  respuesta=response.data;
+                  me.arrayDanados = respuesta.danados.data;
+                  id:id_danados
 
-
-            },
-            descargarPdf: function (id_reposiciones) {
-                location.href='/pdfDescargar'
-            },
-
+              })
+                  .catch(function (error) {
+                      console.log(error);
+                  });
+          },
+          descargarPdf: function (id_danados) {
+            location.href='/pdfDescargar';
+          },
+          //fin de los metodos agregados
           listarDanados(page,buscar,criterio){
 
               let me =this;

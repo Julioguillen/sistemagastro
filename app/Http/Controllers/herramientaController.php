@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Herramientas_Cocina;
+use App\Danados;
 use Illuminate\Support\Facades\DB;
 
 
@@ -92,6 +93,7 @@ class herramientaController extends Controller
         $herramienta->save();
     }
 
+
     /**
      * Display the specified resource.
      *
@@ -121,16 +123,34 @@ class herramientaController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
+
+
     public function update(Request $request)
     {
+
         if (!$request->ajax())return redirect('/');
+        if ($request->cantidad_danados == null){
         $herramienta = Herramientas_Cocina::findOrFail($request->id_herramienta);
         $herramienta->nombre=$request->nombre;
         $herramienta->cantidad=$request->cantidad;
         $herramienta->descripcion=$request->descripcion;
         $herramienta->imagen=$request->imagen;
-
         $herramienta->save();
+        }else{
+
+        $herramienta = Herramientas_Cocina::findOrFail($request->id_herramienta)->decrement('cantidad',$request->cantidad_danados);
+
+            $danados = new Danados();
+            $danados->nombre=$request->nombre;
+            $danados->cantidad_danados=$request->cantidad_danados;
+            $danados->descripcion_danados=$request->descripcion_danados;
+            $danados->control=$request->control;
+            $danados->alumno=$request->alumno;
+            $danados->imagen=$request->imagen;
+            $danados->save();
+        }
+
+
     }
 
     /**
@@ -147,6 +167,7 @@ class herramientaController extends Controller
 
 
     }
+
     public function desactivar(Request $request)
     {
         $herramienta = Herramientas_Cocina::findOrFail($request->id_herramienta);
@@ -159,4 +180,5 @@ class herramientaController extends Controller
         $herramienta->condicion ='1';
         $herramienta->save();
     }
+
 }

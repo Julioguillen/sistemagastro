@@ -14,7 +14,11 @@ import VeeValidate from 'vee-validate';
 Vue.use(VeeValidate);
 import VueModalTor from 'vue-modaltor'
 
-Vue.use(VueModalTor)
+Vue.use(VueModalTor);
+import moment from 'moment'
+Vue.prototype.moment = moment;
+moment.locale('es');
+
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to

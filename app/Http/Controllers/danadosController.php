@@ -4,9 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Danados;
+use App\Herramientas_Cocina;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use Barryvdh\DomPDF\Facade as PDF;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\ServiceProvider;
+
 class danadosController extends Controller
 {
     private $image_ext = ['jpg', 'jpeg', 'png', 'gif'];
@@ -21,13 +26,15 @@ class danadosController extends Controller
     public function index(Request $request)
     {
         if (!$request->ajax())return redirect('/');
+
         $buscar = $request->buscar;
+        $restar = $request->restar;
         $criterio = $request->criterio;
 
            if($buscar ==''){
             $danados = Danados::orderBy('id_danados','desc')->paginate(10);
             }else{
-               $danados = Danados::where('nombre','like','%'.$buscar.'%')->orderBy('id_danados','desc')->paginate(10);
+               $danados = Danados::where('created_at','like','%'.$buscar.'%')->orderBy('id_danados','desc')->paginate(10);
            }
 
         return [
@@ -41,7 +48,7 @@ class danadosController extends Controller
           ],
             'danados'=>$danados
         ];
-        
+
     }
 
     /**
@@ -51,7 +58,7 @@ class danadosController extends Controller
      */
     public function create()
     {
-        
+
     }
 
     /**
@@ -60,37 +67,28 @@ class danadosController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
-    {
-        if($request->get('imagen'))
-        {
-            $image = $request->get('imagen');
-            $name = time().'.' . explode('/', explode(':', substr($image, 0, strpos($image, ';')))[1])[1];
-            \Image::make($request->get('imagen'))->save(public_path('images/').$name);
-        }
-        $max_size = (int)ini_get('upload_max_filesize') * 1000;
-        if (!$request->ajax())return redirect('/');
-        $danados = new Danados();
-        $danados->nombre=$request->nombre;
-        $danados->cantidad=$request->cantidad;
-        $danados->descripcion=$request->descripcion;
-        $danados->imagen=$request->imagen;
-        $danados->save();
-    }
 
+
+
+    //Funciones agregadas para generar los pdf
     public function pdfDescargar()
-    {    
+    {
         $formatoPdf = Danados::all();
         $reposiciones2 = \PDF::loadView('formatoPdf', compact('formatoPdf'));
-        return $reposiciones2->download('reposicion.Pdf');
+        return $reposiciones2->Download('reposicion.Pdf');
     }
 
-    public function pdfVer()
-    {   
-        $danados = $_GET[id_danados];
-        $formatoPdf = danados::findOrFail($danados);
+    public function pdfVer( Request $request)
+    {
+        $danados = Danados::all();
+         $formatoPdf = PDF::loadview('formatoPdf', ['danados'=>$danados  ]);
+        return $formatoPdf->stream('archivo.pdf');
+        /*
+        $formatoPdf = danados::findOrFail($request->input('id'));
         return view('formatoPdf', compact('formatoPdf'));
+        https://desarrolloweb.com/articulos/http-request-laravel5.html*/
     }
+    //fin de funciones agregadas para generar pdf
 
     /**
      * Display the specified resource.
@@ -100,7 +98,7 @@ class danadosController extends Controller
      */
     public function show($id)
     {
-        //
+
     }
 
     /**

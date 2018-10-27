@@ -1,16 +1,46 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
 	<meta charset="utf-8">
-	<link rel="stylesheet" type="text/css" href="css/lib/datatable/dataTables.bootstrap.min.css">
+	<style>
+        html  {
+		  font: normal 13px arial,helvetica,sans-serif;
+		  }
+
+		h1  {
+		  text-align: center;
+		  color: black;
+		  }
+
+		p {
+		  color: black;
+		  }
+
+        div#contenido {
+		  border: solid 1px #000000;
+		  position: center;
+		  overflow: hidden;
+		  top: 80px;
+		  width: 90%;
+		  height: 80%;
+		  padding: 5%;
+		}
+
+
+    </style>
+
 	<title>Reporte de reposición de material</title>
 </head>
 
 <body>
-	<h1>Reposición de material</h1>	
-	<p>El alumno {{ $formatoPdf -> nombre }} perteneciente a la carrera de gastronomia</p>
-	<p>Daño {{ $formatoPdf -> cantidad }} {{ $formatoPdf -> nombre }} del material usado en la carrera de gastronomia</p>
-	<p> por lo cual alumno tendrá que reponer dicho material o pagar el valor equivalente al material dañado</p>
+	<div id="contenido">
+		<div id="marco">
+			<p align="right">Manzanillo,col. &nbsp; Fecha: <?php echo date("m/d/Y"); ?></p>
+			<h1>Reposición de material</h1><br>
 
+			aqui va {{$danados[1]->id_danados}}
+		</div>
+	</div>
 </body>
 </html>

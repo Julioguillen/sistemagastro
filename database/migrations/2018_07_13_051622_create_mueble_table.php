@@ -18,7 +18,7 @@ class CreateMuebleTable extends Migration
             $table->string('nombre');
             $table->integer('cantidad');
             $table->string('descripcion');
-            $table->text('imagen');
+            $table->longtext('imagen');
             $table->boolean('condicion')->default(1);
             $table->timestamps();
         });
